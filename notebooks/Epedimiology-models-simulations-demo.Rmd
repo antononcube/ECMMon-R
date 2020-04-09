@@ -32,7 +32,7 @@ modelSIR[["RateRules"]][["contactRateISSP"]] <- with( list( cr = modelSIR[["Rate
 
 
 ```{r}
-sol <- ode(y = modelSIR[["InitialConditions"]], times = times, func = modelSIR[["RHSFunction"]], parms = modelSIR[["RateRules"]], method = "rk4" )
+sol <- deSolve::ode(y = modelSIR[["InitialConditions"]], times = times, func = modelSIR[["RHSFunction"]], parms = modelSIR[["RateRules"]], method = "rk4" )
 hist(sol)
 ```
 
