@@ -1,0 +1,29 @@
+---
+title: "ECMMon basic examples"
+author: Anton Antonov
+date: 2020-04-09
+output: html_notebook
+---
+
+```{r}
+#library(ECMMon)
+devtools::load_all()
+```
+
+# Introduction
+
+# Basic single-site model pipelines
+
+```{r}
+model <- SEI2HRModel(initialConditionsQ = T, rateRulesQ = T)
+```
+
+```{r}
+ecmObj <- 
+  ECMMonUnit() %>% 
+  ECMMonSetSingleSiteModel(model) %>% 
+  ECMMonEchoModelTableForm( c( "Stocks", "InitialConditions") ) %>% 
+  ECMMonSimulate( maxTime = 365 ) %>% 
+  ECMMonPlotSolutions( stocksSpec = ".*P." )
+```
+

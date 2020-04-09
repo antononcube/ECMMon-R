@@ -1,0 +1,45 @@
+---
+title: "ECMMon core code generation"
+author: Anton Antonov
+date: 2020-04-09
+output: html_notebook
+---
+
+
+# Introduction
+
+The code in this notebook was used to generate the core code of the `ECMMon` monad; see [1].
+
+The R design and implementation follows the design and implementation of `ECMMon` in Mathematica, see [2].
+
+# Code generation
+
+Here we load the State Monad code generation package:
+
+```{r}
+library(StateMonadCodeGenerator)
+```
+
+```{r}
+GenerateStateMonadCode( monadName = "ECMMon", 
+                        memberNames = c("SingleSiteModel" = "list", 
+                                        "MultiSiteModel" = "list", 
+                                        "Grid" = "list", 
+                                        "deSolveSolution" = "matrix",
+                                        "Solution" = "data.frame"), 
+                        monadObjectArgumentName = "ecmObj", 
+                        outputFile = "ECMMon-core.R" )
+```
+
+
+# References
+
+[1] Anton Antonov, 
+[State monad code generator](https://github.com/antononcube/R-packages/tree/master/StateMonadCodeGenerator), 
+(2019),
+[R-packages at GitHub](https://github.com/antononcube/R-packages).
+
+[2] Anton Antonov, 
+[Monadic latent semantic analysis Mathematica package](https://github.com/antononcube/SystemModeling/blob/master/Projects/Coronavirus-propagation-dynamics/WL/MonadicEpidemiologyCompartmentalModeling.m),
+(2020),
+[SystemModeling at GitHub](https://github.com/antononcube/SystemModeling).
