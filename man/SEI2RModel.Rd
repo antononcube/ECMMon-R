@@ -12,9 +12,11 @@ SEI2RModel(initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTermQ = FALSE)
 \item{rateRulesQ}{Should rate rules be included?}
 
 \item{birthsTermQ}{Should the births term be included or not?}
-
-\item{A}{list}
+}
+\value{
+A list.
 }
 \description{
 SEI2RModel
 }
+\concept{Epidemiology Model creation functions}

@@ -48,12 +48,24 @@ ECMMonFailureQ <- function(x) { mean(is.na(x)) }
 
 #' Make a ECMMon Unit
 #' @description Creates a monad object.
+#' @param model A single site model.
 #' @return An S3 class "ECMMon". In other words, a list with the attribute "class" set to "ECMMon".
 #' @export
-ECMMonUnit <- function( ) {
+ECMMonUnit <- function( model = NULL ) {
 
   res <- list( Value = NULL, SingleSiteModel = NULL, MultiSiteModel = NULL, Grid = NULL, deSolveSolution = NULL, Solution = NULL )
   attr(res, "class") <- "ECMMon"
+
+  if( ! is.null(model) ) {
+
+    if( EpidemiologyModelQ(model) ) {
+      res$SingleSiteModel <- model
+    } else {
+      warning("The value of the argument model is expected to be an epidemiology model object or NULL.", call. = TRUE)
+      return(ECMMonFailureSymbol)
+    }
+
+  }
 
   res
 }
@@ -429,6 +441,10 @@ ECMMonTakeSolution <- function( ecmObj, functionName = "ECMMonTakeSolution" ) {
 
 
 ##===========================================================
+##***********************************************************
+##===========================================================
+
+##===========================================================
 ## Echo model table form
 ##===========================================================
 
@@ -439,9 +455,10 @@ ECMMonTakeSolution <- function( ecmObj, functionName = "ECMMonTakeSolution" ) {
 #' @param part A string that which part of the model to echo.
 #' If NULL all parts are echoed.
 #' @return An ECMMon object
+#' @details A list of data frames is assigned to \code{ecmObj$Value}.
 #' @family Query functions
 #' @export
-ECMMonEchoModelTableForm <- function( ecmObj, part = NULL ) {
+ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -451,18 +468,132 @@ ECMMonEchoModelTableForm <- function( ecmObj, part = NULL ) {
 
   model <- ecmObj %>% ECMMonTakeSingleSiteModel
 
-  if( is.character(part) && mean( names(model) %in% part ) ) {
-    purrr::map( part, function(x) {
-      if ( x %in% c( "Stocks", "Rates" ) ) {
-        df <- data.frame( "Symbol" = names(model[[x]]), "Description" = model[[x]], stringsAsFactors = FALSE )
-      } else if ( x %in% c( "InitialConditions", "RateRules" ) ) {
-        df <- data.frame( "Symbol" = names(model[[x]]), "Value" = model[[x]], stringsAsFactors = FALSE)
-      } else {
-        df <- model[[x]]
-      }
-      print( df )
-    } )
+  if( is.null(part) ) {
+    part <- names(model)
   }
+
+  if( is.character(part) && mean( names(model) %in% part ) ) {
+
+    res <-
+      purrr::map( part, function(x) {
+
+        if ( x %in% c( "Stocks", "Rates" ) ) {
+
+          df <- data.frame( "Symbol" = names(model[[x]]), "Description" = model[[x]], stringsAsFactors = FALSE )
+
+        } else if ( x %in% c( "InitialConditions" ) ) {
+
+          df <- data.frame( "Symbol" = names(model[[x]]), "Value" = model[[x]], stringsAsFactors = FALSE)
+
+        } else if ( x %in% c( "RateRules" ) && is.numeric( model[["RateRules"]] ) ) {
+
+          df <- data.frame( "Symbol" = names(model[[x]]), "Value" = model[[x]], stringsAsFactors = FALSE)
+
+        } else {
+
+          df <- model[[x]]
+
+        }
+
+        if( echoQ ) {
+          print( df )
+        }
+
+      })
+
+    names(res) <- part
+  }
+
+  ecmObj$Value <- res
+
+  ecmObj
+}
+
+
+##===========================================================
+## AssignInitialConditions
+##===========================================================
+
+#' Assign initial conditions to model.
+#' @description If there is a multi-site model assign intial conditions to it.
+#' Otherwise the initial conditions are assigned to the single-site model.
+#' @param ecmObj An ECMMon object.
+#' @param initConds A numerical vector with named elements.
+#' The names are expected to be known stocks in the model.
+#' @return An ECMMon object.
+#' @family Simulation functions
+#' @export
+ECMMonAssignInitialConditions <- function( ecmObj, initConds ) {
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE) ) {
+    return(ECMMonFailureSymbol)
+  }
+
+  if( !( is.numeric(initConds) && is.character(names(initConds)) ) ) {
+    warning( "The argument initConds is expected to be a numerical vector with named elements.", call. = TRUE )
+    return(ECMMonFailureSymbol)
+  }
+
+  ## This should be changed when MultiSiteModel is introduced.
+  model <- ecmObj$SingleSiteModel
+
+  if( mean( names(initConds) %in% names(model$InitialConditions) ) < 1 ) {
+    warning( "Some of the names of initConds are not known stocks in ecmObj$SingleSiteModel.", call. = TRUE )
+    return(ECMMonFailureSymbol)
+  }
+
+  model$InitialConditions[ names(initConds) ] <- initConds
+
+  ecmObj$SingleSiteModel <- model
+
+  ecmObj
+}
+
+
+##===========================================================
+## AssignRateValues
+##===========================================================
+
+#' Assign rate rules to model.
+#' @description If there is a multi-site model assign rate values to it.
+#' Otherwise the rate values are assigned to the single-site model.
+#' @param ecmObj An ECMMon object.
+#' @param initConds A numerical vector with named elements.
+#' The names are expected to be known stocks in the model.
+#' @return An ECMMon object.
+#' @family Simulation functions
+#' @export
+ECMMonAssignRateValues <- function( ecmObj, rateValues ) {
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE) ) {
+    return(ECMMonFailureSymbol)
+  }
+
+  if( !( ( is.numeric(rateValues) || is.list(rateValues) ) && is.character(names(rateValues)) ) ) {
+    warning( "The argument rateValues is expected to be a numerical vector with named elements or a list of functions and numbers with named elements", call. = TRUE )
+    return(ECMMonFailureSymbol)
+  }
+
+  ## This should be changed when MultiSiteModel is introduced.
+  model <- ecmObj$SingleSiteModel
+
+  if( mean( names(rateValues) %in% names(model$RateRules) ) < 1 ) {
+    warning( "Some of the names of rateValues are not known stocks in ecmObj$SingleSiteModel.", call. = TRUE )
+    return(ECMMonFailureSymbol)
+  }
+
+  if( is.numeric( rateValues ) ) {
+    model$RateRules[ names(rateValues) ] <- rateValues
+  } else {
+    model$RateRules[ names(rateValues) ] <- as.list( model$RateRules[ names(rateValues) ] )
+    model$RateRules[ names(rateValues) ] <- rateValues
+  }
+
+  ecmObj$SingleSiteModel <- model
 
   ecmObj
 }
@@ -553,7 +684,9 @@ ECMMonPlotSolutions <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echo
     dfQuery <- dfQuery %>% dplyr::filter( Time <= maxTime )
   }
 
-  res <- ggplot(dfQuery) + geom_line( aes( x = Time, y = Value, color = Stock ) )
+  res <-
+    ggplot2::ggplot(dfQuery) +
+    ggplot2::geom_line( ggplot2::aes( x = Time, y = Value, color = Stock ) )
 
   if( echoQ ) {
     print(res)
@@ -563,3 +696,66 @@ ECMMonPlotSolutions <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echo
 
   ecmObj
 }
+
+
+##===========================================================
+## ECMMonPlotSolutionHistograms
+##===========================================================
+
+#' Plot solution histograms.
+#' @description Plots solution histograms.
+#' @param ecmObj An ECMMon object.
+#' @param stocksSpec A character with stock names or string patterns for stock names to be plotted.
+#' @param maxTime A numerical non-negative value for the maximum simulation time or NULL.
+#' If NULL the maximum time is derived from \code{ecmObj$Solution}.
+#' @param echoQ Should the plot be echoed or not?
+#' @param scales Scales argument \code{scales} for \code{\link{ggplot2::facet_wrap}}.
+#' @param ncol Number of columns \code{ncol} argument for \code{\link{ggplot2::facet_wrap}}.
+#' @param ... Additional parameters for \code{\link{ggplot2::geom_histogram}}.
+#' @return An ECMMon object.
+#' @details The plot is assigned to \code{ecmObj$Value}.
+#' @family Plot functions
+#' @export
+ECMMonPlotSolutionHistograms <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echoQ = TRUE, scales = "free", ncol = 2, ... ) {
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Solution", memberPrettyName = "Solution", functionName = "ECMMonPlotSolutions",  logicalResult = TRUE) ) {
+    return(ECMMonFailureSymbol)
+  }
+
+  dfQuery <-
+    ecmObj$Solution %>%
+    tidyr::pivot_longer( cols = colnames(ecmObj$Solution)[-1], names_to = "Stock", values_to = "Value" )
+
+  if( is.character(stocksSpec) ) {
+
+    lsAllStocks <- unique(dfQuery$Stock)
+
+    lsFocusStocks <- purrr::map( stocksSpec, function(ss) { grep( pattern = ss, x = lsAllStocks, value = TRUE ) } )
+    lsFocusStocks <- as.character( unlist( lsFocusStocks ) )
+
+    dfQuery <-
+      dfQuery %>%
+      dplyr::filter( Stock %in% lsFocusStocks )
+  }
+
+  if( is.numeric(maxTime) ) {
+    dfQuery <- dfQuery %>% dplyr::filter( Time <= maxTime )
+  }
+
+  res <-
+    dfQuery %>%
+    ggplot2::ggplot( ) +
+    ggplot2::geom_histogram( ggplot2::aes( x = Value), ... ) +
+    ggplot2::facet_wrap( facets = ~Stock, scales = scales, ncol = ncol )
+
+  if( echoQ ) {
+    print(res)
+  }
+
+  ecmObj$Value <- res
+
+  ecmObj
+}
+

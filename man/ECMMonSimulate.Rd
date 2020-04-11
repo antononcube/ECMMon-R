@@ -20,4 +20,9 @@ An ECMMon object.
 If there is a multi-site models simulates with that model for the specified maximum time.
 Otherwise the simulation is done with single-site model.
 }
+\seealso{
+Other Simulation functions: 
+\code{\link{ECMMonAssignInitialConditions}()},
+\code{\link{ECMMonAssignRateValues}()}
+}
 \concept{Simulation functions}

@@ -5,7 +5,7 @@ Version: 0.1.0
 Author: Anton Antonov
 Maintainer: Anton Antonov <antononcube@gmail.com>
 Description: The package provides a software monad that facilitates the rapid creation of 
-    worflows in Epedimiology.
+    workflows in Epidemiology.
     S3 objects are used represent Epidemiology compartmental models.
     Simulations with those objects are done with the package deSolve.
 License: GPL-3

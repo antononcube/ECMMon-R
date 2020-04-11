@@ -10,9 +10,15 @@ SI2RModel(initialConditionsQ = TRUE, rateRulesQ = TRUE)
 \item{initialConditionsQ}{Should initial conditions be included?}
 
 \item{rateRulesQ}{Should rate rules be included?}
-
-\item{A}{list}
+}
+\value{
+A list.
 }
 \description{
 SI2RModel
 }
+\seealso{
+Other Epidemiology Modeling creation functions: 
+\code{\link{SIRModel}()}
+}
+\concept{Epidemiology Modeling creation functions}

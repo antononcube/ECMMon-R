@@ -4,7 +4,7 @@
 \alias{ECMMonEchoModelTableForm}
 \title{Echo model table form}
 \usage{
-ECMMonEchoModelTableForm(ecmObj, part = NULL)
+ECMMonEchoModelTableForm(ecmObj, part = NULL, echoQ = TRUE)
 }
 \arguments{
 \item{ecmObj}{An ECMMon object.}
@@ -18,5 +18,8 @@ An ECMMon object
 \description{
 If there is a multi-site models echoes (parts of) that model.
 Otherwise echoes the single-site model.
+}
+\details{
+A list of data frames is assigned to \code{ecmObj$Value}.
 }
 \concept{Query functions}

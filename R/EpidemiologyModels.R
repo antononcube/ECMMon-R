@@ -22,6 +22,36 @@
 
 
 ##===========================================================
+## EpidemiologyModelQ
+##===========================================================
+
+#' Epidemiology model object check.
+#' @description Checks is an object an epidemiology model object.
+#' @param x An object
+#' @return A logical.
+#' @family Epidemiology Modeling functions
+#' @export
+EpidemiologyModelQ <- function(x) {
+  is.list(x) && mean( c( "Stocks", "Rates", "RHSFunction" ) %in% names(x) ) == 1
+}
+
+
+##===========================================================
+## EpidemiologyFullModelQ
+##===========================================================
+
+#' Epidemiology full model object check.
+#' @description Checks is an object an epidemiology model object.
+#' @param x An object
+#' @return A logical.
+#' @family Epidemiology Modeling functions
+#' @export
+EpidemiologyFullModelQ <- function(x) {
+  is.list(x) && mean( c( "Stocks", "Rates", "RHSFunction", "InitialConditions", "RateRules" ) %in% names(x) ) == 1
+}
+
+
+##===========================================================
 ## SIRModel
 ##===========================================================
 
@@ -29,7 +59,8 @@
 #' @description SIRModel
 #' @param initialConditionsQ Should initial conditions be included?
 #' @param rateRulesQ Should rate rules be included?
-#' @param A list
+#' @return A list.
+#' @family Epidemiology Modeling creation functions
 #' @export
 SIRModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE ) {
 
@@ -98,7 +129,8 @@ SIRModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE ) {
 #' @description SI2RModel
 #' @param initialConditionsQ Should initial conditions be included?
 #' @param rateRulesQ Should rate rules be included?
-#' @param A list
+#' @return A list.
+#' @family Epidemiology Modeling creation functions
 #' @export
 SI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE ) {
 
@@ -189,7 +221,8 @@ SI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE ) {
 #' @param initialConditionsQ Should initial conditions be included?
 #' @param rateRulesQ Should rate rules be included?
 #' @param birthsTermQ Should the births term be included or not?
-#' @param A list
+#' @return A list.
+#' @family Epidemiology Model creation functions
 #' @export
 SEI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTermQ = FALSE ) {
 

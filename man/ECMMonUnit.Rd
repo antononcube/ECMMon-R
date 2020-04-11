@@ -4,7 +4,10 @@
 \alias{ECMMonUnit}
 \title{Make a ECMMon Unit}
 \usage{
-ECMMonUnit()
+ECMMonUnit(model = NULL)
+}
+\arguments{
+\item{model}{A single site model.}
 }
 \value{
 An S3 class "ECMMon". In other words, a list with the attribute "class" set to "ECMMon".
