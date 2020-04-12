@@ -2,7 +2,7 @@
 % Please edit documentation in R/EpidemiologyModels.R
 \name{EpidemiologyFullModelProperlyDefinedQ}
 \alias{EpidemiologyFullModelProperlyDefinedQ}
-\title{Propertly defined epidemiology full model object check.}
+\title{Properly defined epidemiology full model object check.}
 \usage{
 EpidemiologyFullModelProperlyDefinedQ(model)
 }
@@ -14,7 +14,7 @@ A logical.
 }
 \description{
 Checks is an object a full epidemiology model object and
-are its rates and stocks are properly dedined.
+are its rates and stocks are properly defined.
 }
 \seealso{
 Other Epidemiology Modeling functions: 

@@ -4,12 +4,14 @@
 \alias{AddModelIdentifier}
 \title{A model object check.}
 \usage{
-AddModelIdentifier(model, id)
+AddModelIdentifier(model, id, birthTermsQ = FALSE)
 }
 \arguments{
 \item{model}{A model object.}
 
 \item{id}{A number or string to used as ID.}
+
+\item{birthTermsQ}{A logical.}
 }
 \value{
 A model.
@@ -17,4 +19,8 @@ A model.
 \description{
 Adds a specified identifier id to all stocks and rates on the model m.
 }
-\concept{Epidemiology Model Modifiers}
+\details{
+The original model object has \code{birthTermsQ} in the closure of \code{model$RHSFunction}.
+(For now) it is easier to just have that parameter specified than imply it.
+}
+\concept{Epidemiology Model Modifier functions}

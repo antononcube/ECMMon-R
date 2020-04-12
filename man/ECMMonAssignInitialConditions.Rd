@@ -16,7 +16,7 @@ The names are expected to be known stocks in the model.}
 An ECMMon object.
 }
 \description{
-If there is a multi-site model assign intial conditions to it.
+If there is a multi-site model assign initial conditions to it.
 Otherwise the initial conditions are assigned to the single-site model.
 }
 \seealso{

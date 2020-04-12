@@ -35,7 +35,7 @@ NULL
 #' @param id A number or string to used as ID.
 #' @param birthTermsQ A logical.
 #' @return A model.
-#' @details The orginal model object has \code{birthTermsQ} in the closure of \code{model$RHSFunction}.
+#' @details The original model object has \code{birthTermsQ} in the closure of \code{model$RHSFunction}.
 #' (For now) it is easier to just have that parameter specified than imply it.
 #' @family Epidemiology Model Modifier functions
 #' @export

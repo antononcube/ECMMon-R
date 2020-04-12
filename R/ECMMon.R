@@ -548,7 +548,7 @@ ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE ) {
 ##===========================================================
 
 #' Assign initial conditions to model.
-#' @description If there is a multi-site model assign intial conditions to it.
+#' @description If there is a multi-site model assign initial conditions to it.
 #' Otherwise the initial conditions are assigned to the single-site model.
 #' @param ecmObj An ECMMon object.
 #' @param initConds A numerical vector with named elements.

@@ -55,9 +55,9 @@ EpidemiologyFullModelQ <- function(x) {
 ## EpidemiologyFullModelProperlyDefinedQ
 ##===========================================================
 
-#' Propertly defined epidemiology full model object check.
+#' Properly defined epidemiology full model object check.
 #' @description Checks is an object a full epidemiology model object and
-#' are its rates and stocks are properly dedined.
+#' are its rates and stocks are properly defined.
 #' @param model An object
 #' @return A logical.
 #' @family Epidemiology Modeling functions
