@@ -581,17 +581,27 @@ ECMMonAssignRateValues <- function( ecmObj, rateValues ) {
   ## This should be changed when MultiSiteModel is introduced.
   model <- ecmObj$SingleSiteModel
 
-  if( mean( names(rateValues) %in% names(model$RateRules) ) < 1 ) {
-    warning( "Some of the names of rateValues are not known stocks in ecmObj$SingleSiteModel.", call. = TRUE )
-    return(ECMMonFailureSymbol)
+  frKnown = mean( names(rateValues) %in% names(model$RateRules) )
+
+  if( 0 < frKnown && frKnown < 1 ) {
+
+    warning( "Some of the names of rateValues are not known rates in ecmObj$SingleSiteModel.", call. = TRUE )
+
+  } else if( frKnown == 0 ) {
+
+    warning( "None of the names of rateValues are not known rates in ecmObj$SingleSiteModel.", call. = TRUE )
+
   }
 
-  if( is.numeric( rateValues ) ) {
-    model$RateRules[ names(rateValues) ] <- rateValues
-  } else {
-    model$RateRules[ names(rateValues) ] <- as.list( model$RateRules[ names(rateValues) ] )
-    model$RateRules[ names(rateValues) ] <- rateValues
-  }
+  model$RateRules[ names(rateValues) ] <- rateValues
+
+  # Not needed.
+  # if( is.numeric( rateValues ) ) {
+  #   model$RateRules[ names(rateValues) ] <- rateValues
+  # } else {
+  #   model$RateRules[ names(rateValues) ] <- as.list( model$RateRules[ names(rateValues) ] )
+  #   model$RateRules[ names(rateValues) ] <- rateValues
+  # }
 
   ecmObj$SingleSiteModel <- model
 

@@ -27,7 +27,7 @@
 
 #' Epidemiology model object check.
 #' @description Checks is an object an epidemiology model object.
-#' @param x An object
+#' @param x An object.
 #' @return A logical.
 #' @family Epidemiology Modeling functions
 #' @export
@@ -48,6 +48,32 @@ EpidemiologyModelQ <- function(x) {
 #' @export
 EpidemiologyFullModelQ <- function(x) {
   is.list(x) && mean( c( "Stocks", "Rates", "RHSFunction", "InitialConditions", "RateRules" ) %in% names(x) ) == 1
+}
+
+
+##===========================================================
+## EpidemiologyFullModelProperlyDefinedQ
+##===========================================================
+
+#' Propertly defined epidemiology full model object check.
+#' @description Checks is an object a full epidemiology model object and
+#' are its rates and stocks are properly dedined.
+#' @param model An object
+#' @return A logical.
+#' @family Epidemiology Modeling functions
+#' @export
+EpidemiologyFullModelProperlyDefinedQ<- function( model ) {
+
+  if( ! EpidemiologyModelQ(model) ) {
+    return(FALSE)
+  }
+
+  if( ! EpidemiologyFullModelQ(model) ) {
+    return(TRUE)
+  }
+
+  mean( names(model$InitialConditions) %in% names(model$Stocks) ) == 1 &&
+    mean( names(model$RateRules) %in% names(model$Rates) ) == 1
 }
 
 
@@ -77,6 +103,7 @@ SIRModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE ) {
 
       Rates =
         c(
+          "TP0" = "Initial value of Total Population",
           "deathRateTP" = "Population death rate",
           "deathRateIP" = "Infected Population death rate",
           "contactRateIP" = "Contact rate for the infected population",
@@ -148,6 +175,7 @@ SI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE ) {
 
       Rates =
         c(
+          "TP0" = "Initial value of Total Population",
           "deathRateTP" = "Population death rate",
           "deathRateINSP" = "Infected Normally Symptomatic Population death rate",
           "deathRateISSP" = "Infected Severely Symptomatic Population death rate",
@@ -241,12 +269,15 @@ SEI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTerm
 
       Rates =
         c(
+          "TP0" = "Initial value of Total Population",
           "deathRateTP" = "Population death rate",
           "deathRateINSP" = "Infected Normally Symptomatic Population death rate",
           "deathRateISSP" = "Infected Severely Symptomatic Population death rate",
-          "contactRateIP" = "Contact rate for the infected population",
+          "contactRateINSP" = "Contact rate for the infected normally syptomatic population",
+          "contactRateISSP" = "Contact rate for the infected severely syptomatic population",
           "sspf" = "Severely symptomatic population fraction",
           "aip" = "Average infectious period",
+          "aincp" = "Average incubation period",
           "lpcr" = "Lost productivity cost rate (per person per day)"
         ),
 
@@ -258,7 +289,7 @@ SEI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTerm
                  newlyInfectedTerm <- contactRateISSP / TP0 * SPt * ISSPt + contactRateINSP / TP0 * SPt * INSPt;
 
                  if( birthsTermQ ) {
-                   aSPt <-  deathRateTP * TP0 - newlyInfectedTerm - deathRateTP * SPt
+                   dSPt <-  deathRateTP * TP0 - newlyInfectedTerm - deathRateTP * SPt
                  } else {
                    dSPt <-  - newlyInfectedTerm - deathRateTP * SPt
                  }
@@ -351,18 +382,21 @@ SEI2HRModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTer
 
       Rates =
         c(
+          "TP0" = "Initial value of Total Population",
           "deathRateTP" = "Population death rate",
           "deathRateINSP" = "Infected Normally Symptomatic Population death rate",
           "deathRateISSP" = "Infected Severely Symptomatic Population death rate",
-          "contactRateIP" = "Contact rate for the infected population",
+          "deathRateHP" = "Hospitalized Population death rate",
+          "contactRateINSP" = "Contact rate for the infected normally syptomatic population",
+          "contactRateISSP" = "Contact rate for the infected severely syptomatic population",
+          "contactRateHP" = "Contact rate for the hospitalized population",
           "sspf" = "Severely symptomatic population fraction",
           "aip" = "Average infectious period",
-          "lpcr" = "Lost productivity cost rate (per person per day)",
-          "deathRateHP" = "Hospitalized Population death rate",
-          "contactRateHP" = "Contact rate for the hospitalized population",
+          "aincp" = "Average incubation period",
           "nhbrTP" = "Number of hospital beds rate",
           "hscr" = "Hospital services cost rate (per bed per day)",
-          "nhbcr" = "Number of hospital beds change rate (per day)"
+          "nhbcr" = "Number of hospital beds change rate (per day)",
+          "lpcr" = "Lost productivity cost rate (per person per day)"
         ),
 
       RHSFunction =
@@ -373,13 +407,13 @@ SEI2HRModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTer
                  ##----------------------------------------
 
                  if( is.function(contactRateINSP) ) {
-                   nContactRateINSP <- contactRateINSP(time)
+                   nContactRateINSP <- contactRateINSP ( time )
                  } else {
                    nContactRateINSP <- contactRateINSP
                  }
 
                  if( is.function(contactRateISSP) ) {
-                   nContactRateISSP <- contactRateISSP(time)
+                   nContactRateISSP <- contactRateISSP ( time  )
                  } else {
                    nContactRateISSP <- contactRateISSP
                  }
@@ -394,7 +428,7 @@ SEI2HRModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTer
 
 
                  if( birthsTermQ ) {
-                   aSPt <-  deathRateTP * TP0 - newlyInfectedTerm - deathRateTP * SPt
+                   dSPt <-  deathRateTP * TP0 - newlyInfectedTerm - deathRateTP * SPt
                  } else {
                    dSPt <-  - newlyInfectedTerm - deathRateTP * SPt
                  }

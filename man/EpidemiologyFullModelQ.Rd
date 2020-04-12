@@ -17,6 +17,7 @@ Checks is an object an epidemiology model object.
 }
 \seealso{
 Other Epidemiology Modeling functions: 
+\code{\link{EpidemiologyFullModelProperlyDefinedQ}()},
 \code{\link{EpidemiologyModelQ}()}
 }
 \concept{Epidemiology Modeling functions}

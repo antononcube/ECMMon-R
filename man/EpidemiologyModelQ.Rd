@@ -7,7 +7,7 @@
 EpidemiologyModelQ(x)
 }
 \arguments{
-\item{x}{An object}
+\item{x}{An object.}
 }
 \value{
 A logical.
@@ -17,6 +17,7 @@ Checks is an object an epidemiology model object.
 }
 \seealso{
 Other Epidemiology Modeling functions: 
+\code{\link{EpidemiologyFullModelProperlyDefinedQ}()},
 \code{\link{EpidemiologyFullModelQ}()}
 }
 \concept{Epidemiology Modeling functions}
