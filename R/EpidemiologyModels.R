@@ -283,7 +283,7 @@ SEI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTerm
 
       RHSFunction =
         function( time, state, parameters ) {
-          with(as.list( c( state, parameters ) ) ,
+          with(as.list( c( state, parameters ) ),
                {
 
                  newlyInfectedTerm <- contactRateISSP / TP0 * SPt * ISSPt + contactRateINSP / TP0 * SPt * INSPt;
@@ -302,8 +302,7 @@ SEI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTerm
 
                  dRPt <- (1 / aip) * (ISSPt + INSPt) - deathRateTP * RPt
 
-                 dMLPt <- lpcr * (TP0 - RPt - SPt)
-
+                 dMLPt <- lpcr * ( INSPt + ISSPt + deathRateINSP * INSPt + deathRateISSP * ISSPt )
 
                  return( list( c( dSPt, dEPt, dINSPt, dISSPt, dRPt, dMLPt ) ) )
                }
@@ -472,8 +471,8 @@ SEI2HRModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTer
                RPt = 0,
                DIPt = 0,
                HBt = 2.9/1000 * 10^5, # nhbrTP * TP0
-               MLPt = 0,
-               MHSt = 0
+               MHSt = 0,
+               MLPt = 0
              )))
   }
 
