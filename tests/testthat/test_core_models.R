@@ -30,11 +30,12 @@ ProprelyDefinedRatesQ <- function( model ) {
 }
 
 
-
 ## Model objects
 modelSIR <- SIRModel( initialConditionsQ = TRUE, rateRulesQ = TRUE )
+modelSI2R <- SIRModel( initialConditionsQ = TRUE, rateRulesQ = TRUE )
 modelSEI2R <- SEI2RModel( initialConditionsQ = TRUE, rateRulesQ = TRUE )
 modelSEI2HR <- SEI2HRModel( initialConditionsQ = TRUE, rateRulesQ = TRUE )
+
 
 ## Tests: expected objects
 test_that("Expected SIR model object", {
@@ -42,6 +43,14 @@ test_that("Expected SIR model object", {
   expect_is( modelSIR, "list" )
 
   expect_equal( sort(names(modelSIR)), sort(c("Stocks", "Rates", "RHSFunction", "InitialConditions", "RateRules")) )
+
+})
+
+test_that("Expected SI2R model object", {
+
+  expect_is( modelSI2R, "list" )
+
+  expect_equal( sort(names(modelSI2R)), sort(c("Stocks", "Rates", "RHSFunction", "InitialConditions", "RateRules")) )
 
 })
 
@@ -61,12 +70,13 @@ test_that("Expected SEI2HR model object", {
 
 })
 
+
 ## Tests: verification tests
 test_that("Expected verification functions results", {
 
-  expect_true( mean( sapply( list(modelSIR, modelSEI2R, modelSEI2HR), EpidemiologyModelQ ) ) == 1 )
+  expect_true( mean( sapply( list(modelSIR, modelSI2R, modelSEI2R, modelSEI2HR), EpidemiologyModelQ ) ) == 1 )
 
-  expect_true( mean( sapply( list(modelSIR, modelSEI2R, modelSEI2HR), EpidemiologyFullModelQ ) ) == 1 )
+  expect_true( mean( sapply( list(modelSIR, modelSI2R, modelSEI2R, modelSEI2HR), EpidemiologyFullModelQ ) ) == 1 )
 
 })
 
@@ -76,10 +86,11 @@ test_that("Properly defined models stocks", {
   ## expect_true( mean( sapply( list(modelSIR, modelSEI2R, modelSEI2HR), ProprelyDefinedQ ) ) == 1 )
   expect_true( ProprelyDefinedStocksQ(modelSIR) )
 
+  expect_true( ProprelyDefinedStocksQ(modelSI2R) )
+
   expect_true( ProprelyDefinedStocksQ(modelSEI2R) )
 
   expect_true( ProprelyDefinedStocksQ(modelSEI2HR) )
-
 
 })
 
@@ -87,6 +98,8 @@ test_that("Properly defined models stocks", {
 test_that("Properly defined models rates", {
 
   expect_true( ProprelyDefinedRatesQ(modelSIR) )
+
+  expect_true( ProprelyDefinedRatesQ(modelSI2R) )
 
   expect_true( ProprelyDefinedRatesQ(modelSEI2R) )
 
