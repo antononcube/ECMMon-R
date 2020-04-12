@@ -445,6 +445,39 @@ ECMMonTakeSolution <- function( ecmObj, functionName = "ECMMonTakeSolution" ) {
 ##===========================================================
 
 ##===========================================================
+## GetDefaultModel
+##===========================================================
+
+#' Get default model object.
+#' @description Get the default model of the monad object.
+#' @param ecmObj An ECMMon object.
+#' @return An ECMMon object.
+#' @family Get functions
+#' @export
+ECMMonGetDefaultModel <- function( ecmObj ) {
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  if( !is.null(ecmObj$MultiSiteModel) ) {
+
+    ecmObj$Value <- ecmObj$MultiSiteModel
+
+  } else if( !is.null(ecmObj$SingleSiteModel) ) {
+
+    ecmObj$Value <- ecmObj$SingleSiteModel
+
+  } else {
+
+    warning( "Cannot find a model.", call. = TRUE )
+    return(ECMMonFailureSymbol)
+
+  }
+
+  ecmObj
+}
+
+
+##===========================================================
 ## Echo model table form
 ##===========================================================
 
@@ -678,21 +711,22 @@ ECMMonPlotSolutions <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echo
     ecmObj$Solution %>%
     tidyr::pivot_longer( cols = colnames(ecmObj$Solution)[-1], names_to = "Stock", values_to = "Value" )
 
+  model <- ecmObj %>% ECMMonGetDefaultModel %>% ECMMonTakeValue
+
   if( is.character(stocksSpec) ) {
-
-    lsAllStocks <- unique(dfQuery$Stock)
-
-    lsFocusStocks <- purrr::map( stocksSpec, function(ss) { grep( pattern = ss, x = lsAllStocks, value = TRUE ) } )
-    lsFocusStocks <- as.character( unlist( lsFocusStocks ) )
 
     dfQuery <-
       dfQuery %>%
-      dplyr::filter( Stock %in% lsFocusStocks )
+      dplyr::filter( Stock %in% GetStocks( model, stocksSpec ) )
   }
 
   if( is.numeric(maxTime) ) {
     dfQuery <- dfQuery %>% dplyr::filter( Time <= maxTime )
   }
+
+  dfQuery <-
+    dfQuery %>%
+    dplyr::mutate( Stock = paste0( Stock, ", ",  model$Stocks[ Stock ]) )
 
   res <-
     ggplot2::ggplot(dfQuery) +
@@ -738,21 +772,22 @@ ECMMonPlotSolutionHistograms <- function( ecmObj, stocksSpec = NULL, maxTime = N
     ecmObj$Solution %>%
     tidyr::pivot_longer( cols = colnames(ecmObj$Solution)[-1], names_to = "Stock", values_to = "Value" )
 
+  model <- ecmObj %>% ECMMonGetDefaultModel %>% ECMMonTakeValue
+
   if( is.character(stocksSpec) ) {
-
-    lsAllStocks <- unique(dfQuery$Stock)
-
-    lsFocusStocks <- purrr::map( stocksSpec, function(ss) { grep( pattern = ss, x = lsAllStocks, value = TRUE ) } )
-    lsFocusStocks <- as.character( unlist( lsFocusStocks ) )
 
     dfQuery <-
       dfQuery %>%
-      dplyr::filter( Stock %in% lsFocusStocks )
+      dplyr::filter( Stock %in% GetStocks( model, stocksSpec ) )
   }
 
   if( is.numeric(maxTime) ) {
     dfQuery <- dfQuery %>% dplyr::filter( Time <= maxTime )
   }
+
+  dfQuery <-
+    dfQuery %>%
+    dplyr::mutate( Stock = paste0( Stock, ", ",  model$Stocks[ Stock ]) )
 
   res <-
     dfQuery %>%
