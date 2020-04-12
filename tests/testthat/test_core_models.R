@@ -1,7 +1,6 @@
 context("Core models")
 
-#library(ECMMon)
-devtools::load_all()
+library(ECMMon)
 
 ## Definitions
 ProprelyDefinedStocksQ <- function( model ) {
