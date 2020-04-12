@@ -1,0 +1,50 @@
+#+TITLE: ECMMon-R development plan
+#+AUTHOR: Anton Antonov
+#+EMAIL: antononcube@gmail.com
+#+TODO: TODO ONGOING MAYBE | DONE CANCELED 
+
+* TODO Core models [80%] [4/5]
+** DONE SIR
+** DONE SI2R
+** DONE SEI2R
+** DONE SEI2HR
+** TODO SEI2HR-Econ
+* TODO [#A] Multi-site functionality [0%] [0/6]
+** TODO Add model identifier [%] [/]
+- [X] Rates and stocks modification
+- [ ] Left Hand Sides extraction
+- [X] Mapping
+- [X] Sanity check tests
+** TODO Join two models
+** TODO Multi-site core model
+** TODO Matrix elements to be added
+** TODO Make multi-site model
+** TODO Testing
+* TODO ECMMon code [0%]
+** TODO [#A] Single-site model [80%] [4/5]
+*** DONE [#A] Core monad code generation
+*** DONE [#A] Simulate
+*** DONE [#A] Plot Solutions
+*** DONE [#A] Plot Histograms
+*** TODO [#A] Sensitivity Analysis
+** TODO Multi-site model [%] [/]
+* TODO Dashboards [33%] [1/3]
+** DONE [#A] Basic ~flexdashboard~
+** TODO [#A] ~flexdashboard~ based on  ~ECMMon~
+** TODO [#B] Monad function for dashboard making
+* TODO Unit tests [40%] [2/5]
+** DONE Core models tests
+- [X] Expected objects after creation
+- [X] Proper definitions
+** DONE Basic ~ECMMon~ pipelines tests
+** TODO Multi-site making tests [%] [/] 
+- [ ] Adding of model identifier
+- [ ] Model joining
+- [ ] Multi-site model making
+** TODO Scaffolding functions
+** TODO Random pipelines tests
+* TODO Documentation [25%] [1/4]
+** DONE README
+** TODO Basic examples notebook
+** TODO [#B] SEI2HR with quarantine scenarios
+** TODO SEI2HR-Econ with quarantine and medical supplies scenarios
