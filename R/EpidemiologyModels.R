@@ -179,7 +179,8 @@ SI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE ) {
           "deathRateTP" = "Population death rate",
           "deathRateINSP" = "Infected Normally Symptomatic Population death rate",
           "deathRateISSP" = "Infected Severely Symptomatic Population death rate",
-          "contactRateIP" = "Contact rate for the infected population",
+          "contactRateINSP" = "Contact rate for the infected normally syptomatic population",
+          "contactRateISSP" = "Contact rate for the infected severely syptomatic population",
           "sspf" = "Severely symptomatic population fraction",
           "aip" = "Average infectious period",
           "lpcr" = "Lost productivity cost rate (per person per day)"
@@ -187,7 +188,7 @@ SI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE ) {
 
       RHSFunction =
         function( time, state, parameters ) {
-          with(as.list( c( state, parameters ) ) ,
+          with(as.list( c( state, parameters ) ),
                {
 
                  newlyInfectedTerm <- contactRateINSP * SPt * INSPt / TP0 + contactRateISSP * SPt * ISSPt / TP0
