@@ -202,6 +202,15 @@ JoinModels <- function( model1, model2 ) {
 
   newModel$Rates <- c( model1$Rates, model2$Rates )
 
+  ## Initial conditions and rate rules
+  if( EpidemiologyFullModelQ(newModel) ) {
+
+    newModel$InitialConditions <- c( model1$InitialConditions, model2$InitialConditions )
+
+    newModel$RateRules <- c( model1$RateRules, model2$RateRules )
+
+  }
+
   ## RHS functions
   lsRHSFuncLines1 <- TakeRHSFunctionBodyLines(model1)
 
@@ -217,28 +226,28 @@ JoinModels <- function( model1, model2 ) {
        "          )",
        "        }")
 
-  returnStockNames1 <- names(model1$Stocks)
-  returnStockNames1 <-paste0( "d", returnStockNames1 )
-  returnStockNames1 <- returnStockNames1[ returnStockNames1 %in% GetLeftHandSides( lsRHSFuncLines1 ) ]
+  if( EpidemiologyFullModelQ(newModel) ) {
 
-  returnStockNames2 <- names(model2$Stocks)
-  returnStockNames2 <-paste0( "d", returnStockNames2 )
-  returnStockNames2 <- returnStockNames2[ returnStockNames2 %in% GetLeftHandSides( lsRHSFuncLines2 ) ]
+    lsReturnLine <- paste( paste0( "d", names(newModel$InitialConditions) ), collapse = ", " )
+
+  } else {
+
+    returnStockNames1 <- names(model1$Stocks)
+    returnStockNames1 <-paste0( "d", returnStockNames1 )
+    returnStockNames1 <- returnStockNames1[ returnStockNames1 %in% GetLeftHandSides( lsRHSFuncLines1 ) ]
+
+    returnStockNames2 <- names(model2$Stocks)
+    returnStockNames2 <-paste0( "d", returnStockNames2 )
+    returnStockNames2 <- returnStockNames2[ returnStockNames2 %in% GetLeftHandSides( lsRHSFuncLines2 ) ]
 
 
-  lsReturnLine <- paste( c( returnStockNames1, returnStockNames2 ), collapse = ", " )
+    lsReturnLine <- paste( c( returnStockNames1, returnStockNames2 ), collapse = ", " )
+
+  }
+
   lsReturnLine <- paste( "                 return( list( c( ", lsReturnLine, " ) ) )" )
 
   newModel$RHSFunction <- eval( parse( text = c( lsStartLines, lsRHSFuncLines1, lsRHSFuncLines2, lsReturnLine, lsEndLines ) ) )
-
-  ## Initial conditions and rate rules
-  if( EpidemiologyFullModelQ(newModel) ) {
-
-    newModel$InitialConditions <- c( model1$InitialConditions, model2$InitialConditions )
-
-    newModel$RateRules <- c( model1$RateRules, model2$RateRules )
-
-  }
 
   #Result
   newModel
@@ -262,11 +271,13 @@ MakeCoreMultiSiteModel <- function( model, cellIdentifiers ) {
     stop( "The argument model is expected to be an epidemiology model object.", call. = TRUE )
   }
 
-  if( ! is.character(cellIdentifiers) ) {
-    stop( "The argument cellIdentifiers is expected to be a character vector.", call. = TRUE )
+  if( ! is.character(cellIdentifiers) && length(cellIdentifiers) > 1 ) {
+    stop( "The argument cellIdentifiers is expected to be a character vector with more than one element.", call. = TRUE )
   }
 
+  lsModels <- purrr::map( cellIdentifiers, function(x) { AddModelIdentifier( model = model, id = x ) } )
 
+  Reduce( function( a, x) JoinModels( model1 = a, model2 = x), init = lsModels[[1]], x = lsModels[-1] )
 }
 
 
