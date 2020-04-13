@@ -532,12 +532,13 @@ ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE ) {
           print( df )
         }
 
+        df
       })
 
     names(res) <- part
-  }
 
-  ecmObj$Value <- res
+    ecmObj$Value <- res
+  }
 
   ecmObj
 }
