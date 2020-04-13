@@ -504,3 +504,206 @@ SEI2HRModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTer
   res
 }
 
+
+
+##===========================================================
+## SEI2HREconModel
+##===========================================================
+
+#' SEI2HREconModel model
+#' @description SEI2HREconModel
+#' @param initialConditionsQ Should initial conditions be included?
+#' @param rateRulesQ Should rate rules be included?
+#' @param birthsTermQ Should the births term be included or not?
+#' @param A list
+#' @export
+SEI2HREconModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTermQ = FALSE ) {
+
+  res <-
+    list(
+
+      Stocks =
+        c(
+          "TPt" = "Total Population",
+          "SPt" = "Susceptible Population",
+          "EPt" = "Exposed Population",
+          "INSPt" = "Infected Normally Symptomatic Population",
+          "ISSPt" = "Infected Severely Symptomatic Population",
+          "RPt" = "Recovered Population",
+          "MLPt" = "Money of Lost Productivity",
+          "HPt" = "Hospitalized Population",
+          "DIPt" = "Deceased Infected Population",
+          "MSt" = "Medical Supplies",
+          "MSDt" = "Medical Supplies Demand",
+          "HBt" = "Hospital Beds",
+          "MMSPt" = "Money for Medical Supplies Production",
+          "MHSt" = "Money for Hospital Services",
+          "HMSt" = "Hospital Medical Supplies"),
+
+      Rates =
+        c(
+          "TP0" = "Initial value of Total Population",
+          "deathRateTP" = "Population death rate",
+          "deathRateINSP" = "Infected Normally Symptomatic Population death rate",
+          "deathRateISSP" = "Infected Severely Symptomatic Population death rate",
+          "sspfSP" = "Severely Symptomatic Population Fraction",
+          "contactRateINSP" = "Contact rate for the normally symptomatic population",
+          "contactRateISSP" = "Contact rate for the severely symptomatic population",
+          "aip" = "Average infectious period",
+          "aincp" = "Average incubation period",
+          "lpcr" = "Lost productivity cost rate (per person per day)",
+          "deathRateHP" = "Hospitalized Population death rate",
+          "contactRateHP" = "Contact rate for the hospitalized population",
+          "nhbrTP" = "Number of hospital beds rate (number of beds per person)",
+          "hscr" = "Hospital services cost rate (per bed per day)",
+          "nhbcr" = "Number of hospital beds change rate (per day)",
+          "hpmscr" = "Hospitalized population medical supplies consumption rate (per day)",
+          "upmscr" = "Un-hospitalized population medical supplies consumption rate (units per day)",
+          "msprHB" = "Medical supplies production rate (units per pay)",
+          "mspcrHB" = "Medical supplies production cost rate (per unit)",
+          "msdpHB" = "Medical supplies delivery period (number of days)",
+          "mscrTP" = "Medical supplies consumption rate (units per day per person)",
+          "mscrINSP" = "Medical supplies consumption rate (units per day per person)",
+          "mscrISSP" = "Medical supplies consumption rate (units per day per person)",
+          "mscrHP" = "Medical supplies consumption rate (units per day per person)",
+          "capacityHMS" = "Capacity to store Hospital Medical Supplies",
+          "capacityMS" = "Capacity to store produced Medical Supplies",
+          "capacityMSD" = "Capacity to transport produced Medical Supplies"),
+
+
+      RHSFunction =
+        function( time, state, parameters ) {
+          with(as.list( c( state, parameters ) ) ,
+               {
+
+                 ##----------------------------------------
+
+                 if( is.function(contactRateINSP) ) {
+                   nContactRateINSP <- contactRateINSP ( time )
+                 } else {
+                   nContactRateINSP <- contactRateINSP
+                 }
+
+                 if( is.function(contactRateISSP) ) {
+                   nContactRateISSP <- contactRateISSP ( time  )
+                 } else {
+                   nContactRateISSP <- contactRateISSP
+                 }
+
+                 ##----------------------------------------
+
+                 newBySeverelyInfectedTerm = contactRateISSP / TP0 * SPt * max(ISSPt - HPt, 0) + contactRateHP / TP0 * SPt * HPt
+
+                 newByNormallyInfectedTerm = contactRateINSP / TP0 * SPt * INSPt
+
+                 newlyInfectedTerm = newBySeverelyInfectedTerm + newByNormallyInfectedTerm
+
+                 usableHospitalBeds = min(HBt - HPt, HMSt / mscrISSP)
+
+                 peopleDyingPerDay = deathRateISSP * ( ISSPt - HPt ) + deathRateINSP * INSPt + deathRateHP * HPt;
+
+                 orderedHospitalSupplies = min( capacityMSD, MSt, mscrHP * HBt, capacityHMS - HMSt ) / msdpHB;
+
+                 if( birthsTermQ ) {
+                   dSPt <-  deathRateTP * TP0 - newlyInfectedTerm - deathRateTP * SPt
+                 } else {
+                   dSPt <-  - newlyInfectedTerm - deathRateTP * SPt
+                 }
+
+                 dEPt <- newlyInfectedTerm - (1/aincp + deathRateTP) * EPt
+
+                 dINSPt <-  (1 - sspfSP) * (1 / aincp) * EPt - (1 / aip) * INSPt - deathRateINSP * INSPt
+
+                 dISSPt <-  sspfSP * (1 / aincp) * EPt - (1 / aip) * ISSPt - deathRateISSP * ( ISSPt - HPt ) - deathRateHP * HPt
+
+                 dHPt <-  ifelse( HPt < HBt, min( usableHospitalBeds, sspfSP * (1 / aincp) * EPt), 0 ) - (1 / aip) * HPt - deathRateHP * HPt
+
+                 dRPt <-  (1 / aip) * (ISSPt + INSPt) - deathRateTP * RPt
+
+                 dDIPt <-  peopleDyingPerDay
+
+                 dHBt <-  nhbcr * HBt
+
+                 dHMSt <-  - min( HMSt, mscrISSP * HPt ) + orderedHospitalSupplies
+
+                 dMSt <- min( msprHB, capacityMS - MSt ) - orderedHospitalSupplies - min( MSt - orderedHospitalSupplies, mscrISSP * (ISSPt - HPt) + mscrINSP * INSPt + mscrTP * (SPt + EPt + RPt) )
+
+                 dMSDt <- HPt*mscrHP + INSPt*mscrINSP + ISSPt*mscrISSP + mscrTP*(EPt + RPt + SPt)
+
+                 dMHSt <- HPt*hscr
+
+                 dMMSPt <- MSDt*mspcrHB
+
+                 dMLPt <- lpcr*(INSPt + ISSPt + peopleDyingPerDay)
+
+
+                 return( list( c( dSPt, dEPt, dINSPt, dISSPt, dHPt, dRPt, dDIPt, dHBt, dHMSt, dMSt, dMSDt, dMMSPt, dMHSt, dMLPt ) ) )
+
+               }
+          )
+        }
+    )
+
+  if( initialConditionsQ ) {
+    res <-
+      c( res,
+         list(
+           InitialConditions =
+             c(
+               SPt = 10^5 - 2, # TP0 - 1
+               EPt = 0,
+               INSPt = 1,
+               ISSPt = 1,
+               HPt = 0,
+               RPt = 0,
+               DIPt = 0,
+               HBt = 2.9/1000 * 10^5, # nhbrTP * TP0
+               HMSt = 1000.,
+               MSt = 4000,
+               MSDt = 0,
+               MMSPt = 0,
+               MHSt = 0,
+               MLPt = 0
+             )
+         ))
+  }
+
+  if( rateRulesQ ) {
+    res <-
+      c( res,
+         list(
+           RateRules =
+             c(
+               TP0 = 10^5,
+               deathRateTP = (800 / 10^5) / 365.,
+               deathRateISSP = 0.035 / 26, # 0.035 / aip,
+               deathRateINSP = 0.015 / 26, # 0.015 / aip
+               contactRateISSP = 0.15,
+               contactRateINSP = 0.15,
+               aip = 26,
+               aincp = 6,
+               sspfSP = 0.2,
+               lpcr = 1,
+               deathRateHP =  0.25 * 0.035 / 26, #  0.25 *deathRateISSP
+               contactRateHP = 0.015, # 0.1 * contactRateISSP
+               nhbrTP = 0.0029,
+               nhbcr = 0.00001,
+               hscr = 1,
+               hpmscr = 4,
+               upmscr = 2,
+               mspcrHB = 1,
+               msdpHB = 1.5,
+               msprHB = 29000.,
+               mscrTP = 0.02,
+               mscrINSP = 0.7,
+               mscrISSP = 3,
+               mscrHP = 4,
+               capacityHMS = 6*290,
+               capacityMS = 4000.,
+               capacityMSD = 290/10.
+             )))
+  }
+
+  res
+}
+

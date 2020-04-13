@@ -35,6 +35,7 @@ modelSIR <- SIRModel( initialConditionsQ = TRUE, rateRulesQ = TRUE )
 modelSI2R <- SIRModel( initialConditionsQ = TRUE, rateRulesQ = TRUE )
 modelSEI2R <- SEI2RModel( initialConditionsQ = TRUE, rateRulesQ = TRUE )
 modelSEI2HR <- SEI2HRModel( initialConditionsQ = TRUE, rateRulesQ = TRUE )
+modelSEI2HREcon <- SEI2HREconModel( initialConditionsQ = TRUE, rateRulesQ = TRUE )
 
 
 ## Tests: expected objects
@@ -70,13 +71,21 @@ test_that("Expected SEI2HR model object", {
 
 })
 
+test_that("Expected SEI2HREcon model object", {
+
+  expect_is( modelSEI2HREcon, "list" )
+
+  expect_equal( sort(names(modelSEI2HREcon)), sort(c("Stocks", "Rates", "RHSFunction", "InitialConditions", "RateRules")) )
+
+})
+
 
 ## Tests: verification tests
 test_that("Expected verification functions results", {
 
-  expect_true( mean( sapply( list(modelSIR, modelSI2R, modelSEI2R, modelSEI2HR), EpidemiologyModelQ ) ) == 1 )
+  expect_true( mean( sapply( list(modelSIR, modelSI2R, modelSEI2R, modelSEI2HR, modelSEI2HREcon), EpidemiologyModelQ ) ) == 1 )
 
-  expect_true( mean( sapply( list(modelSIR, modelSI2R, modelSEI2R, modelSEI2HR), EpidemiologyFullModelQ ) ) == 1 )
+  expect_true( mean( sapply( list(modelSIR, modelSI2R, modelSEI2R, modelSEI2HR, modelSEI2HREcon), EpidemiologyFullModelQ ) ) == 1 )
 
 })
 
@@ -92,6 +101,8 @@ test_that("Properly defined models stocks", {
 
   expect_true( ProprelyDefinedStocksQ(modelSEI2HR) )
 
+  expect_true( ProprelyDefinedStocksQ(modelSEI2HREcon) )
+
 })
 
 
@@ -104,5 +115,7 @@ test_that("Properly defined models rates", {
   expect_true( ProprelyDefinedRatesQ(modelSEI2R) )
 
   expect_true( ProprelyDefinedRatesQ(modelSEI2HR) )
+
+  expect_true( ProprelyDefinedRatesQ(modelSEI2HREcon) )
 
 })
