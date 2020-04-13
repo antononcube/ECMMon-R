@@ -26,8 +26,8 @@ which in turn relies on FORTRAN code. For example, on Mac OS X the installation 
 
 ## Usage
 
-Here is a notebook that demonstrates the usage of the provided objects and functions:
-"Basic experiments workflow for simple epidemiological models"(https://github.com/antononcube/ECMMon-R/blob/master/notebooks/Basic-experiments-workflow-for-simple-epidemiological-models.Rmd),
+Here is a notebook that demonstrates usage of the provided objects and functions:
+["Basic experiments workflow for simple epidemiological models"](https://github.com/antononcube/ECMMon-R/blob/master/notebooks/Basic-experiments-workflow-for-simple-epidemiological-models.Rmd),
 ([HTML](https://htmlpreview.github.io/?https://github.com/antononcube/ECMMon-R/blob/master/notebooks/Basic-experiments-workflow-for-simple-epidemiological-models.nb.html)).
   
 The package repository has [flexdashboard](https://rmarkdown.rstudio.com/flexdashboard/index.html) interfaces for the more important models. 

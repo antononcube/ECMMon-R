@@ -1,0 +1,255 @@
+---
+title: "Basic-experiments-workflow-for-simple-epidemiological-models"
+author: Anton Antonov
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Basic-experiments-workflow-for-simple-epidemiological-models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ECMMon)
+```
+
+
+# Introduction
+
+The primary purpose of this notebook is to give a “stencil workflows” for simulations using the package ["ECMMon-R](https://github.com/antononcube/ECMMon-R), [AAr2].
+
+We present two code workflows: one based on "low-level" package usage, the other based on (monadic) pipelines.
+
+The model in this notebook -- SEI2R -- differs from [the classical SEIR model](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology) with the following elements:
+
+1. Two separate infected populations: one is "severely symptomatic", the other is "normally symptomatic"
+
+2. The monetary equivalent of lost productivity due to infected or died people is tracked
+
+**Remark:** We consider the contagious disease propagation models as instances of the more general [System Dynamics (SD)](https://en.wikipedia.org/wiki/System_dynamics) models.
+We use SD terminology in this notebook.
+
+**Remark:** The SEI2R model is a modification of the classic epidemic model SEIR, [Wk1, HH1].
+
+**Remark:** The monadic pipelines in the notebook can be used for attempts to calibrate SEI2R with real data. 
+(For example, data for the [2019–20 coronavirus outbreak](https://en.wikipedia.org/wiki/2019â20_coronavirus_outbreak), [WRI1].)
+
+**Remark:** The repository "ECMMon-R", [AAr2], has a [flexdashboard](https://github.com/antononcube/ECMMon-R/blob/master/flexdashboards/SEI2HR-flexdashboard.Rmd) 
+for interactive experimentation with the package models. The flexdashboard can be easily developed further or changed in order to fit user's needs.
+
+# Workflow
+
+1. Get one of the classical epidemiology models.
+
+2. Extend the model equations if needed or desired.
+
+3. Set relevant initial conditions for the populations.
+
+4. Pick model parameters to adjust and “play with.”
+
+5. Using monadic pipelines (or an interactive interface) experiment with different values of the parameters.
+
+    - In order to form “qualitative understanding.”
+
+6. Get real life data.
+
+    - Say, for the 2019-20 coronavirus outbreak.
+
+7. Attempt manual or automatic calibration of the model.
+
+    - This step will most likely require additional data transformations and programming.
+
+    - Only manual calibration is shown in this notebook.
+
+# Install and load `ECMMon` 
+
+This notebook use the package `ECMMon-R`, [AAr2], which implements a software monad for rapid specification of Epidemiology Compartmental Modeling (ECM) workflows.
+
+Monad's name is "ECMMon", which stands for "**E**pidemiology **C**ompartmental **M**odeling **Mon**ad".
+
+```{r, message=FALSE}
+devtools::install_github( "antononcube/ECMMon-R")
+library(ECMMon)
+library(magrittr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+# Low-level code
+
+## Getting the model code
+
+Here we take the SEI2R model implemented in the package ["ECMMon-R"](https://github.com/antononcube/ECMMon-R), [AAr2]:
+
+```{r}
+model <- SEI2RModel( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTermQ = FALSE )
+```
+
+The model object is a list with named elements:
+
+```{r}
+names(model)
+```
+
+Here are the stocks:
+
+```{r}
+as.data.frame(model$Stocks)
+```
+
+Here are the rates:
+
+```{r}
+as.data.frame(model$Rates)
+```
+
+Here is the Right Hand Side (RHS) function used in calls of the function `ode` of the package "deSolve", [KS1]:
+
+```{r}
+model$RHSFunction
+```
+
+Here are the initial conditions:
+
+```{r}
+as.data.frame(model$InitialConditions)
+```
+
+Here are the rate values:
+
+```{r}
+as.data.frame(model$RateRules)
+```
+
+## Parameter changes 
+
+Here we change the initial condition for the stock Infected Severely Symptomatic Population (ISSP):
+
+```{r}
+model$InitialConditions["ISSPt"] <- 20
+```
+
+
+Here we change the contact rate for to be ISSP to be 0.5:
+
+```{r}
+model$RateRules["contactRateISSP"] <- 0.3
+```
+
+## Simulation
+
+In this section we compute a simulation with model object described above. 
+(Using [`deSolve::ode`](https://www.rdocumentation.org/packages/deSolve/versions/1.28/topics/ode).)
+
+Here are the simulation times:
+
+```{r}
+times <- seq( 0, 365, 1)
+```
+
+Here we compute the simulation:
+
+```{r}
+sol <- deSolve::ode(y = model[["InitialConditions"]], times = times, func = model[["RHSFunction"]], parms = model[["RateRules"]], method = "rk4" )
+```
+
+Here we convert the matrix `sol` into a data frame:
+
+```{r}
+dfSol <- as.data.frame(sol)
+colnames(dfSol) <- gsub( "time", "Time", colnames(dfSol) )
+head(dfSol)
+```
+
+**Remark:** We can see in the first row that ISSP starts with the initial condition we set.
+
+## Visualization
+
+Next we plot the solutions of the "non-money" stocks using the package "ggplot2" after we first convert the data frame `dfSol` into long form using the package "tydir":
+
+```{r}
+dfSol %>% 
+  tidyr::pivot_longer( cols = colnames(dfSol)[-1], names_to = "Stock", values_to = "Value" ) %>%
+  dplyr::filter( Stock != "MLPt" ) %>% 
+  ggplot2::ggplot( ) +
+  ggplot2::geom_line( ggplot2::aes( x = Time, y = Value, color = Stock ) )
+```
+
+Here we plot the solutions histograms:
+
+```{r}
+hist(sol)
+```
+
+# Pipelines
+
+Here is a pipeline that corresponds to the code in the previous section:
+
+```{r}
+ecmObj <- 
+  ECMMonUnit( SEI2RModel() ) %>% 
+  ECMMonAssignInitialConditions( initConds = c( "ISSPt" = 20 ) ) %>%
+  ECMMonAssignRateValues(rateValues = c("contactRateISSP" = 0.3 ) ) %>% 
+  ECMMonSimulate( 365 ) %>% 
+  ECMMonPlotSolutions( stocksSpec = ".*Population" )
+```
+
+```{r}
+ecmObj <- 
+  ecmObj %>%
+  ECMMonPlotSolutionHistograms(bins=20)
+```
+
+Here we see the first rows of the solutions data frame (in the monad object):
+
+```{r}
+head(ecmObj %>% ECMMonTakeSolution)
+```
+
+# Calibration with real data
+
+It is important to calibrate these kind of models with real data, or at least to give a serious attempt to such a calibration. 
+If the calibration is “too hard” or “impossible” that would indicate that the model is not that adequate. (If adequate at all.)
+
+The calibration efforts can be (semi-)automated using special model-to-data goodness of fit functions and a minimization procedure. 
+(See for example, [AA2].)
+
+In this section we just attempt to calibrate SEI2R over real data taken from [WRI1] using a specialized interactive interface.
+
+*(To be finished...)*
+
+# References
+
+## Articles
+
+[Wk1] Wikipedia entry, ["Compartmental models in epidemiology"](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology).
+
+[HH1] Herbert W. Hethcote (2000). ["The Mathematics of Infectious Diseases"](http://leonidzhukov.net/hse/2014/socialnetworks/papers/2000SiamRev.pdf). SIAM Review. 42 (4): 599–653. Bibcode:2000SIAMR..42..599H. doi:10.1137/s0036144500371907.
+
+[AA1] Anton Antonov, ["Coronavirus propagation modeling considerations"](https://github.com/antononcube/SystemModeling/blob/master/Projects/Coronavirus-propagation-dynamics/Documents/Coronavirus-propagation-modeling-considerations.md), (2020), [SystemModeling at GitHub](https://github.com/antononcube/SystemModeling).
+
+[AA2] Anton Antonov, [Answer of "Model calibration with phase space data"](https://mathematica.stackexchange.com/a/190295/34008), (2019), [Mathematica StackExchage](https://mathematica.stackexchange.com).
+
+## Repositories & packages
+
+[WRI1] Wolfram Research, Inc., ["Epidemic Data for Novel Coronavirus COVID-19"](https://www.wolframcloud.com/obj/resourcesystem/published/DataRepository/resources/Epidemic-Data-for-Novel-Coronavirus-COVID-19), [WolframCloud](https://www.wolframcloud.com).
+
+[KS1] Karline Soetaert et al, ["deSolve: Solvers for Initial Value Problems of Differential Equations ('ODE', 'DAE', 'DDE')"](https://cran.r-project.org/web/packages/deSolve/index.html), [CRAN](https://cran.r-project.org).
+
+[AAr1] Anton Antonov, [Coronavirus propagation dynamics project](https://github.com/antononcube/SystemModeling/tree/master/Projects/Coronavirus-propagation-dynamics), (2020), [SystemModeling at GitHub](https://github.com/antononcube/SystemModeling).
+
+[AAr2] Anton Antonov, [Epidemiology Compartmental Modeling Monad R package](https://github.com/antononcube/ECMMon-R), (2020), [ECMMon-R at GitHub](https://github.com/antononcube/ECMMon-R).
+
+[AAp1] Anton Antonov, ["Epidemiology models Mathematica package"](https://github.com/antononcube/SystemModeling/blob/master/Projects/Coronavirus-propagation-dynamics/WL/EpidemiologyModels.m), (2020), [SystemModeling at GitHub](https://github.com/antononcube/SystemModeling).
+
+[AAp2] Anton Antonov, ["Epidemiology models modifications Mathematica package"](https://github.com/antononcube/SystemModeling/blob/master/Projects/Coronavirus-propagation-dynamics/WL/EpidemiologyModelModifications.m), (2020), [SystemModeling at GitHub](https://github.com/antononcube/SystemModeling).
+
+[AAp3] Anton Antonov, ["System dynamics interactive interfaces functions Mathematica package"](https://github.com/antononcube/SystemModeling/blob/master/WL/SystemDynamicsInteractiveInterfacesFunctions.m), (2020), [SystemModeling at GitHub](https://github.com/antononcube/SystemModeling).
