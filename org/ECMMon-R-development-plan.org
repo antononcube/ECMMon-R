@@ -3,12 +3,12 @@
 #+EMAIL: antononcube@gmail.com
 #+TODO: TODO ONGOING MAYBE | DONE CANCELED 
 
-* TODO Core models [80%] [4/5]
-- [ ] SIR
-DONE SI2R
-** DONE SEI2R
-** DONE SEI2HR
-** TODO SEI2HR-Econ
+* DONE Core models [100%] [5/5]
+- [X] SIR
+- [X] SI2R
+- [X] SEI2R
+- [X] SEI2HR
+- [X] SEI2HR-Econ
 * TODO [#A] Multi-site functionality [50%] [3/6]
 ** DONE Add model identifier [100%] [4/4]
 - [X] Rates and stocks modification
@@ -22,24 +22,35 @@ DONE SI2R
 ** DONE Multi-site core model
 - [X] Simple ~Reduce~ implementation with ~JoinModels~
 - [X] Sanity check tests with ~ECMMon~
-- [X] Check that works with 100s cell identifiers
-  | n sites | creation time | simulation time |
-  |---------+---------------+-----------------|
-  |      20 | 0.2 s         | 28 s            |
-  |      50 | 1.0 s         | 332 s           |
-  |     100 | 3.5 s         |                 | 
-- These creation and running statistics make the whole multi-site model less attractive.
-  - In R. In WL the approach is working just fine.
+- [X] Check that works with 100's of cell identifiers
+  | n sites | model       | creation time | simulation time | method |
+  |---------+-------------+---------------+-----------------+--------|
+  |      20 | SEI2HRModel | 0.2 s         | 28 s            | lsoda  |
+  |      20 | SEI2HRModel | 0.25          | 12 s            | rk4    |
+  |      20 | SEI2RModel  | 0.13          | 2.5 s           | rk4    |
+  |      20 | SEI2RModel  | 0.13          | 1.7 s           | lsoda  |
+  |      50 | SEI2HRModel | 1.0 s         | 332 s           | lsoda  |
+  |      64 | SEI2HRModel | 1.6 s         | 148 s           | rk4    |
+  |      64 | SEI2RModel  | 0.8 s         | 33 s            | lsoda  |
+  |      64 | SEI2RModel  | 0.8 s         | 36 s            | rk4    |
+  |      84 | SEI2HRModel | 2.5 s         | 278 s           | rk4    |
+  |     100 | SEI2HRModel | 3.5 s         | 384 s           | rk4    |
+  |     100 | SEI2HRModel | 3.5 s         | 2362 s          | lsoda  |
+  |     100 | SEI2RModel  | 1.6 s         | 96 s            | rk4    |
+  |     100 | SEI2RModel  | 1.6 s         | 79 s            | lsoda  |
+- These creation and solving times statistics make the whole multi-site model less attractive in R.
+  - In WL the approach is working just fine.
 ** TODO Matrix elements to be added
 ** TODO Make multi-site model
 ** TODO Testing
 * TODO ECMMon code [0%]
-** TODO [#A] Single-site model [80%] [4/5]
+** TODO [#A] Single-site model [66%] [4/6]
 *** DONE [#A] Core monad code generation
 *** DONE [#A] Simulate
 *** DONE [#A] Plot Solutions
 *** DONE [#A] Plot Histograms
 *** TODO [#A] Sensitivity Analysis
+*** TODO [#A] Plot Sensitivity Analysis Solutions
 ** TODO Multi-site model [%] [/]
 * TODO Dashboards [33%] [1/3]
 ** DONE [#A] Basic ~flexdashboard~
@@ -56,8 +67,9 @@ DONE SI2R
 - [ ] Multi-site model making
 ** TODO Scaffolding functions
 ** TODO Random pipelines tests
-* TODO Documentation [25%] [1/4]
-** DONE README
-** TODO Basic examples notebook
+* TODO Documentation [20%] [1/5]
+** DONE [#A] README
+** TODO [#A] Basic examples notebook
 ** TODO [#B] SEI2HR with quarantine scenarios
-** TODO SEI2HR-Econ with quarantine and medical supplies scenarios
+** TODO [#A] SEI2HR-Econ with quarantine and medical supplies scenarios
+** TODO [#B] Vignette
