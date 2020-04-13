@@ -21,10 +21,12 @@
 ##===========================================================
 
 
+#' @import deSolve
 #' @import magrittr
 #' @import purrr
+#' @import dplyr
+#' @improt tidyr
 #' @import ggplot2
-#' @import deSolve
 NULL
 
 ##===========================================================
