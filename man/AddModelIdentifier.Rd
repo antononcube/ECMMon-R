@@ -4,14 +4,21 @@
 \alias{AddModelIdentifier}
 \title{A model object check.}
 \usage{
-AddModelIdentifier(model, id, birthTermsQ = FALSE)
+AddModelIdentifier(
+  model,
+  id,
+  addToOtherLeftHandSidesQ = TRUE,
+  birthsTermQ = FALSE
+)
 }
 \arguments{
 \item{model}{A model object.}
 
 \item{id}{A number or string to used as ID.}
 
-\item{birthTermsQ}{A logical.}
+\item{addToOtherLeftHandSidesQ}{Should the id added to other left hand side symbols or not?}
+
+\item{birthsTermQ}{Should the births term be included or not?}
 }
 \value{
 A model.
@@ -22,5 +29,10 @@ Adds a specified identifier id to all stocks and rates on the model m.
 \details{
 The original model object has \code{birthTermsQ} in the closure of \code{model$RHSFunction}.
 (For now) it is easier to just have that parameter specified than imply it.
+}
+\seealso{
+Other Epidemiology Model Modifier functions: 
+\code{\link{JoinModels}()},
+\code{\link{TakeRHSFunctionBodyLines}()}
 }
 \concept{Epidemiology Model Modifier functions}
