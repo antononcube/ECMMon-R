@@ -26,22 +26,31 @@ which in turn relies on FORTRAN code. For example, on Mac OS X the installation 
 
 ## Usage
 
-The package repository has:
+Here is a notebook that demonstrates the usage of the provided objects and functions:
+"Basic experiments workflow for simple epidemiological models"(https://github.com/antononcube/ECMMon-R/blob/master/notebooks/Basic-experiments-workflow-for-simple-epidemiological-models.Rmd),
+([HTML](https://htmlpreview.github.io/?https://github.com/antononcube/ECMMon-R/blob/master/notebooks/Basic-experiments-workflow-for-simple-epidemiological-models.nb.html)).
+  
+The package repository has [flexdashboard](https://rmarkdown.rstudio.com/flexdashboard/index.html) interfaces for the more important models. 
 
-  - notebooks that demonstrate and guide the usage of the provided objects and functions,
+### Core models
 
-  - [flexdashboard](https://rmarkdown.rstudio.com/flexdashboard/index.html) interfaces for the more important models. 
-
-Here are the models 
+Here are the core (single-site) models 
 
   - SIR   
     “Susceptible, Infected, Recovered” populations
+
+  - SEIR   
+    “Susceptible, Exposed, Infected, Recovered” populations
 
   - SEI2R   
     “Susceptible, Exposed, Infected two, Recovered” populations
 
   - SEI2HR   
     “Susceptible, Exposed, Infected two, Hospitalized, Recovered” populations
+
+  - SEI2HREcon   
+    “Susceptible, Exposed, Infected two, Hospitalized, Recovered” populations with Economic extensions
+
 
 
 ## References
