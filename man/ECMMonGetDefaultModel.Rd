@@ -13,6 +13,10 @@ ECMMonGetDefaultModel(ecmObj)
 An ECMMon object.
 }
 \description{
-Get the default model of the monad object.
+Gets the default model of the monad object.
+}
+\seealso{
+Other Get functions: 
+\code{\link{ECMMonGetSolutionLongForm}()}
 }
 \concept{Get functions}

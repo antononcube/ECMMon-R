@@ -22,16 +22,16 @@ Assigns \code{value} to \code{ecmObj$Value}.
 }
 \seealso{
 Other Set/Take functions: 
+\code{\link{ECMMonSetDeSolveSolution}()},
 \code{\link{ECMMonSetGrid}()},
 \code{\link{ECMMonSetMultiSiteModel}()},
 \code{\link{ECMMonSetSingleSiteModel}()},
 \code{\link{ECMMonSetSolution}()},
-\code{\link{ECMMonSetdeSolveSolution}()},
+\code{\link{ECMMonTakeDeSolveSolution}()},
 \code{\link{ECMMonTakeGrid}()},
 \code{\link{ECMMonTakeMultiSiteModel}()},
 \code{\link{ECMMonTakeSingleSiteModel}()},
 \code{\link{ECMMonTakeSolution}()},
-\code{\link{ECMMonTakeValue}()},
-\code{\link{ECMMonTakedeSolveSolution}()}
+\code{\link{ECMMonTakeValue}()}
 }
 \concept{Set/Take functions}

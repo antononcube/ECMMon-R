@@ -292,7 +292,7 @@ ECMMonSetGrid <- function( ecmObj, Grid ) {
 #' @return An ECMMon object.
 #' @family Set/Take functions
 #' @export
-ECMMonSetdeSolveSolution <- function( ecmObj, deSolveSolution ) {
+ECMMonSetDeSolveSolution <- function( ecmObj, deSolveSolution ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -408,7 +408,7 @@ ECMMonTakeGrid <- function( ecmObj, functionName = "ECMMonTakeGrid" ) {
 #' @return A list of functions or \code{ECMMonFailureSymbol}.
 #' @family Set/Take functions
 #' @export
-ECMMonTakedeSolveSolution <- function( ecmObj, functionName = "ECMMonTakedeSolveSolution" ) {
+ECMMonTakeDeSolveSolution <- function( ecmObj, functionName = "ECMMonTakeDeSolveSolution" ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -451,7 +451,7 @@ ECMMonTakeSolution <- function( ecmObj, functionName = "ECMMonTakeSolution" ) {
 ##===========================================================
 
 #' Get default model object.
-#' @description Get the default model of the monad object.
+#' @description Gets the default model of the monad object.
 #' @param ecmObj An ECMMon object.
 #' @return An ECMMon object.
 #' @family Get functions
@@ -474,6 +474,47 @@ ECMMonGetDefaultModel <- function( ecmObj ) {
     return(ECMMonFailureSymbol)
 
   }
+
+  ecmObj
+}
+
+
+##===========================================================
+## GetSolutionLongForm
+##===========================================================
+
+#' Get long form solution.
+#' @description Gets the long form of the solution data frame \code{ecmObj$Solution}.
+#' @param ecmObj An ECMMon object.
+#' @param stockDescriptionsQ Should a column with the stock descriptions be added or not?
+#' @return An ECMMon object.
+#' @details The stocks types are derived from the stocks descriptions, \code{ecmObj$Stocks}.
+#' The stocks types are "Population", "Money", "Other".
+#' @family Get functions
+#' @export
+ECMMonGetSolutionLongForm <- function( ecmObj, stockDescriptionsQ = TRUE ) {
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Solution", memberPrettyName = "Solution", functionName = "GetSolutionLongForm",  logicalResult = TRUE) ) {
+    return(ECMMonFailureSymbol)
+  }
+
+  dfQuery <-
+    ecmObj$Solution %>%
+    tidyr::pivot_longer( cols = colnames(ecmObj$Solution)[-1], names_to = "Stock", values_to = "Value" )
+
+  if( stockDescriptionsQ ) {
+
+    model <- ecmObj %>% ECMMonGetDefaultModel %>% ECMMonTakeValue
+
+    dfQuery <-
+      dfQuery %>%
+      dplyr::mutate( Description = model$Stocks[ Stock ] )
+
+  }
+
+  ecmObj$Value <- dfQuery
 
   ecmObj
 }
