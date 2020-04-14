@@ -68,8 +68,8 @@ sliderInput( inputId = "maxTime", label = "Max time:", min = 1, max = 365, value
 ```{r}
 selectInput( inputId = "stocksToPlot", 
              label = "Stocks to plot:", 
-             choices = c("SPt", "EPt", "INSPt", "ISSPt", "HPt", "RPt", "DIPt" ), 
-             selected = c("SPt", "EPt", "INSPt", "ISSPt", "HPt", "RPt", "DIPt" ), 
+             choices = setNames( GetStocks( modelSIR, "^.*Population" ), modelSIR$Stocks[ GetStocks( modelSIR, "^.*Population" ) ]), 
+             selected = setdiff( GetStocks( modelSIR, "^.*Population" ), c("TPt") ), 
              multiple = TRUE )
 ```
 
@@ -138,7 +138,7 @@ renderPlot( expr = {
   p <-
     dfSol() %>%
     tidyr::pivot_longer( cols = colnames(dfSol())[-1], names_to = "Stock", values_to = "Value" )%>% 
-    dplyr::filter( Stock %in% c("MHSt", "MLPt") ) %>% 
+    dplyr::filter( Stock %in% GetStocks( modelSIR, "^Money" ),  ) %>% 
     dplyr::mutate( Stock = paste0( Stock, ", ", modelSIR$Stocks[ Stock ] ))
   
   p <-
