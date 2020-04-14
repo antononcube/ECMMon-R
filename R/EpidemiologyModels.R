@@ -592,9 +592,9 @@ SEI2HREconModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birth
 
                  ##----------------------------------------
 
-                 newBySeverelyInfectedTerm = contactRateISSP / TP0 * SPt * max(ISSPt - HPt, 0) + contactRateHP / TP0 * SPt * HPt
+                 newBySeverelyInfectedTerm = nContactRateISSP / TP0 * SPt * max(ISSPt - HPt, 0) + contactRateHP / TP0 * SPt * HPt
 
-                 newByNormallyInfectedTerm = contactRateINSP / TP0 * SPt * INSPt
+                 newByNormallyInfectedTerm = nContactRateINSP / TP0 * SPt * INSPt
 
                  newlyInfectedTerm = newBySeverelyInfectedTerm + newByNormallyInfectedTerm
 
