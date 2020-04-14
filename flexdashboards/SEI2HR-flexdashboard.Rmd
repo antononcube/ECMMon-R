@@ -41,6 +41,10 @@ sliderInput( inputId = "deathRateISSP", label = "ISSP death rate:", min = 0, max
 sliderInput( inputId = "deathRateINSP", label = "INSP death rate:", min = 0, max = 1, value = 0.015, step = 0.001 )
 
 sliderInput( inputId = "sspf", label = "Severely symptomatic population fraction:", min = 0, max = 1, value = 0.2, step = 0.01 )
+
+sliderInput( inputId = "aip", label = "Average infectious period:", min = 1, max = 90, value = 28, step = 1 )
+
+sliderInput( inputId = "aincp", label = "Average incubation period:", min = 1, max = 90, value = 6, step = 1 )
 ```
 
 ### Quarantine parameters
@@ -56,7 +60,7 @@ sliderInput( inputId = "qcrf", label = "Quarantine contact rate factor:", min = 
 ### Time horizon
 
 ```{r}
-sliderInput( inputId = "maxTime", label = "Max time:", min = 1, max = 365, value = 240, step = 1 )
+sliderInput( inputId = "maxTime", label = "Max time:", min = 1, max = 365, value = 365, step = 1 )
 ```
 
 ### Stocks to plot
@@ -88,12 +92,12 @@ sol <-
     
     localParams <- as.list( modelSIR[["RateRules"]] )
     
-    localParams[ c( "contactRateISSP", "contactRateINSP", "deathRateISSP", "deathRateINSP", "sspf") ] <- c( input$contactRateISSP, input$contactRateINSP, input$deathRateISSP, input$deathRateINSP, input$sspf)
+    localParams[ c( "contactRateISSP", "contactRateINSP", "deathRateISSP", "deathRateINSP", "sspf") ] <- c( input$contactRateISSP, input$contactRateINSP, input$deathRateISSP / input$aip, input$deathRateINSP / input$aip, input$sspf)
     
-    localParams[["contactRateINSP"]] <- function(t) { input$contactRateISSP * ifelse( input$qsd <= t && t <= input$qsd + input$ql, input$qcrf, 1 ) }
-    localParams[["contactRateISSP"]] <- function(t) { input$contactRateINSP * ifelse( input$qsd <= t && t <= input$qsd + input$ql, input$qcrf, 1 ) }
+    localParams[["contactRateINSP"]] <- function(t) { input$contactRateINSP * ifelse( input$qsd <= t && t <= input$qsd + input$ql, input$qcrf, 1 ) }
+    localParams[["contactRateISSP"]] <- function(t) { input$contactRateISSP * ifelse( input$qsd <= t && t <= input$qsd + input$ql, input$qcrf, 1 ) }
 
-    ode(y = modelSIR[["InitialConditions"]], times = times, func = modelSIR[["RHSFunction"]], parms = localParams, method = "lsoda" ) 
+    ode(y = modelSIR[["InitialConditions"]], times = times, func = modelSIR[["RHSFunction"]], parms = localParams, method = "rk4" ) 
   })
 ```
 
@@ -116,8 +120,10 @@ renderPlot( expr = {
     dfSol() %>%
     tidyr::pivot_longer( cols = colnames(dfSol())[-1], names_to = "Stock", values_to = "Value" )%>% 
     dplyr::filter( Stock %in% input$stocksToPlot ) %>%
+    dplyr::mutate( Stock = paste0( Stock, ", ", modelSIR$Stocks[ Stock ] ) ) %>% 
     ggplot( ) +
-    geom_line( aes( x = Time, y = Value, color = Stock), lwd = 1.2 )
+    geom_line( aes( x = Time, y = Value, color = Stock), lwd = 1.2 ) +
+    geom_vline( xintercept = c( input$qsd, input$qsd + input$ql), color = "gray", show.legend = TRUE )
   
   print(p)
 })
@@ -132,7 +138,8 @@ renderPlot( expr = {
   p <-
     dfSol() %>%
     tidyr::pivot_longer( cols = colnames(dfSol())[-1], names_to = "Stock", values_to = "Value" )%>% 
-    dplyr::filter( Stock %in% c("MHSt", "MLPt"))
+    dplyr::filter( Stock %in% c("MHSt", "MLPt") ) %>% 
+    dplyr::mutate( Stock = paste0( Stock, ", ", modelSIR$Stocks[ Stock ] ))
   
   p <-
     if( input$moneyPlotLog10 ) {
@@ -143,6 +150,7 @@ renderPlot( expr = {
         geom_line( aes( x = Time, y = Value, color = Stock), lwd = 1.2 )
     }  
   
+  p <- p  + geom_vline( xintercept = c( input$qsd, input$qsd + input$ql), color = "gray", show.legend = TRUE )
   print(p)
 })
 ```
