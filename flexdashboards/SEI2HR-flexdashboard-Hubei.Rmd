@@ -24,7 +24,8 @@ library(ggplot2)
 ```{r global, include=FALSE}
 # load data in 'global' chunk so it can be shared by all users of the dashboard
 modelSIR <- SEI2HRModel()
-
+## Note that Hubei, China has nearly 59 million people. 
+## Here the population is much smaller. (I that can be justified in variety of ways.)
 aRealData = list( "RecoveredCases" = c(28, 28, 31, 32, 42, 45, 80, 88, 90,
       141, 168, 295, 386, 522, 633, 817, 1115, 1439, 1795, 2222, 2639,
       2686, 3459, 4774, 5623, 6639, 7862, 9128, 10337, 11788, 11881, 
