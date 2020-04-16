@@ -435,7 +435,7 @@ ECMMonDashboardServerFunction <- function( ecmObj ) {
 
 #' Creation of an ECMMon dashboard.
 #' @param ecmObj An ECMMon object.
-#' @param dashboardTheme A string specifying the dashbaard theme.
+#' @param dashboardTheme A string specifying the dashboard theme.
 #' See \code{\link{dashboardthemes::shinyDashboardThemes}}.
 #' Ignored if the package \code{dashboardthemes} is not installed.
 #' @return Shiny app

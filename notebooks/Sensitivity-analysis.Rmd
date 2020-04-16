@@ -9,49 +9,67 @@ output: html_notebook
 library(ECMMon)
 library(tidyverse)
 library(ggplot2)
+library(threejs)
 ```
 
 # Introduction
 
+In this notebook we Sensitivity Analysis using monadic pipelines.
+
+
 # 2D plots
 
-
 ```{r}
-modelSIR <- SEI2HRModel()
+model <- SEI2HRModel()
 ```
 
 ```{r}
-times <- seq( 0, 365, 1)
+model
+```
+
+```{r}
+model[["RateRules"]] <- as.list( model[["RateRules"]] )
+model[["RateRules"]][["contactRateINSP"]] <- with( list( cr = model[["RateRules"]][["contactRateINSP"]] ), function(t) { cr * ifelse( qsd <= t && t <= qsd + 56, 0.25, 1 ) } )
+model[["RateRules"]][["contactRateISSP"]] <- with( list( cr = model[["RateRules"]][["contactRateISSP"]] ), function(t) { cr * ifelse( qsd <= t && t <= qsd + 56, 0.25, 1 ) } )
+```
+
+```{r}
 system.time(
-  dfRes <- 
+  dfSARes <- 
     purrr::map_df( seq(50,120,10), function( qsd ) {
       
-      locaParams <- as.list( modelSIR[["RateRules"]] )
-      locaParams[["contactRateINSP"]] <- with( list( cr = locaParams[["contactRateINSP"]] ), function(t) { cr * ifelse( qsd <= t && t <= qsd + 56, 0.25, 1 ) } )
-      locaParams[["contactRateISSP"]] <- with( list( cr = locaParams[["contactRateISSP"]] ), function(t) { cr * ifelse( qsd <= t && t <= qsd + 56, 0.25, 1 ) } )
-      
-      sol <- ode(y = modelSIR[["InitialConditions"]], times = times, func = modelSIR[["RHSFunction"]], parms = locaParams, method = "rk4" )
- 
-      data.frame( QuarantineStart = qsd, Time = sol[ , "time" ], ISSPt = sol[ , "ISSPt" ], HPt = sol[ , "HPt" ], DIPt = sol[ , "DIPt" ] )     
+      dfRes <- 
+        ECMMonUnit( model ) %>% 
+        ECMMonAssignRateValues( 
+          c( 
+            "contactRateINSP" =  function(t) { 0.56 * ifelse( qsd <= t && t <= qsd + 56, 0.25, 1 ) },
+            "contactRateISSP" =  function(t) { 0.56 * ifelse( qsd <= t && t <= qsd + 56, 0.25, 1 ) }
+          ) 
+        ) %>% 
+        ECMMonSimulate( 365 ) %>% 
+        ECMMonGetSolutionLongForm %>% 
+        ECMMonTakeValue
+
+      cbind( QuarantineStart = qsd, dfRes %>% dplyr::filter( Stock %in% GetStocks( model, ".*Infected.*Population")) )      
     })
 )
 ```
 
-```{r}
-dfResLongForm <- tidyr::pivot_longer( data = dfRes, cols = c( "ISSPt", "HPt", "DIPt" ), names_to = "Variable", values_to = "Value" )
-summary(as.data.frame(unclass(dfResLongForm)))
-```
 
 ```{r}
-ggplot(dfResLongForm) +
-  geom_line( aes( x = Time, y = Value, color = QuarantineStart, group = QuarantineStart ) ) +
-  facet_wrap( ~Variable, scales = "free", ncol = 1 )
+summary(as.data.frame(unclass(dfSARes)))
+```
+
+```{r, fig.width=8}
+ggplot(dfSARes) +
+  geom_line( aes( x = Time, y = Value, color = as.factor(QuarantineStart), group = QuarantineStart ) ) +
+  facet_wrap( ~Stock, scales = "free", ncol = 1 )
 ```
 
 # 3D plots
 
 ```{r}
-modelSIR <- SEI2HRModel()
+model <- SEI2HRModel()
 ```
 
 
@@ -59,26 +77,34 @@ modelSIR <- SEI2HRModel()
 dfPairs <- expand.grid( seq(14, 12*7, 7), seq(10, 120, 5) )
 dim(dfPairs)
 ```
+```{r}
+dfPairs
+```
 
 ```{r}
 times <- seq( 0, 365, 1)
 system.time(
-  dfRes <- 
+  dfSARes <- 
     purrr::map2_df( dfPairs$Var1, dfPairs$Var2, function( ql, qsd ) {
       
-      locaParams <- as.list( modelSIR[["RateRules"]] )
-      locaParams[["contactRateINSP"]] <- with( list( cr = locaParams[["contactRateINSP"]] ), function(t) { cr * ifelse( qsd <= t && t <= qsd + ql, 0.25, 1 ) } )
-      locaParams[["contactRateISSP"]] <- with( list( cr = locaParams[["contactRateISSP"]] ), function(t) { cr * ifelse( qsd <= t && t <= qsd + ql, 0.25, 1 ) } )
-      
-      sol <- ode(y = modelSIR[["InitialConditions"]], times = times, func = modelSIR[["RHSFunction"]], parms = locaParams, method = "rk4" )
- 
-      data.frame( QuarantineStart = qsd, QuarantineLength = ql, ISSPt = sol[ nrow(sol), "ISSPt" ], HPt = sol[ nrow(sol), "HPt" ], DIPt = sol[ nrow(sol), "DIPt" ] )     
+      sol <- 
+        ECMMonUnit( model ) %>% 
+        ECMMonAssignRateValues( 
+          c( 
+            "contactRateINSP" =  function(t) { 0.56 * ifelse( qsd <= t && t <= qsd + ql, 0.25, 1 ) },
+            "contactRateISSP" =  function(t) { 0.56 * ifelse( qsd <= t && t <= qsd + ql, 0.25, 1 ) }
+          ) 
+        ) %>% 
+        ECMMonSimulate( 365, method = "rk4" ) %>% 
+        ECMMonTakeDeSolveSolution
+
+      data.frame( QuarantineStart = qsd, QuarantineLength = ql, DIPt = sol[nrow(sol), "DIPt"] )      
     })
 )
 ```
 
 ```{r}
-summary(dfRes)
+summary(dfSARes)
 ```
 
 ```{r}
@@ -87,7 +113,11 @@ n <- sum( dfPairs$Var2 == min(dfPairs$Var2) )
 ```
 
 ```{r}
-threejs::scatterplot3js( x = dfRes$QuarantineStart, y = dfRes$QuarantineLength, z = dfRes$DIPt, size = 0.25 ) %>% 
+
+```
+
+```{r}
+threejs::scatterplot3js( x = dfSARes$QuarantineStart, y = dfSARes$QuarantineLength, z = dfSARes$DIPt, size = 0.25 ) %>% 
   threejs::lines3d( 1:(m*n-n), (n+1):(m*n) )
 ```
 

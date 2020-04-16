@@ -9,7 +9,7 @@ ECMMonCreateDasboard(ecmObj, dashboardTheme = NULL)
 \arguments{
 \item{ecmObj}{An ECMMon object.}
 
-\item{dashboardTheme}{A string specifying the dashbaard theme.
+\item{dashboardTheme}{A string specifying the dashboard theme.
 See \code{\link{dashboardthemes::shinyDashboardThemes}}.
 Ignored if the package \code{dashboardthemes} is not installed.}
 }

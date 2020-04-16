@@ -4,7 +4,15 @@
 \alias{ECMMonPlotSolutions}
 \title{Plot solutions.}
 \usage{
-ECMMonPlotSolutions(ecmObj, stocksSpec = NULL, maxTime = NULL, echoQ = TRUE)
+ECMMonPlotSolutions(
+  ecmObj,
+  stocksSpec = NULL,
+  maxTime = NULL,
+  echoQ = TRUE,
+  stockDescriptionsQ = TRUE,
+  separatePlotsQ = FALSE,
+  ...
+)
 }
 \arguments{
 \item{ecmObj}{An ECMMon object.}
@@ -15,6 +23,12 @@ ECMMonPlotSolutions(ecmObj, stocksSpec = NULL, maxTime = NULL, echoQ = TRUE)
 If NULL the maximum time is derived from \code{ecmObj$Solution}.}
 
 \item{echoQ}{Should the plot be echoed or not?}
+
+\item{stockDescriptionsQ}{Should the stock descriptions be added or not?}
+
+\item{separatePlotsQ}{Should the stock plots be separated or not?}
+
+\item{...}{Additional parameters for \code{\link{ggplot2::facet_wrap}}}
 }
 \value{
 An ECMMon object.

@@ -530,11 +530,12 @@ ECMMonGetSolutionLongForm <- function( ecmObj, stockDescriptionsQ = TRUE ) {
 #' @param ecmObj An ECMMon object.
 #' @param part A string that which part of the model to echo.
 #' If NULL all parts are echoed.
+#' @param dataFrameResultQ Should the result be a data frame or not?
 #' @return An ECMMon object
 #' @details A list of data frames is assigned to \code{ecmObj$Value}.
 #' @family Query functions
 #' @export
-ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE ) {
+ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE, dataFrameResultQ = FALSE ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -550,6 +551,7 @@ ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE ) {
 
   if( is.character(part) && mean( names(model) %in% part ) ) {
 
+    ## First pass
     res <-
       purrr::map( part, function(x) {
 
@@ -571,7 +573,7 @@ ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE ) {
 
         }
 
-        if( echoQ ) {
+        if( echoQ && !dataFrameResultQ ) {
           print( df )
         }
 
@@ -579,6 +581,31 @@ ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE ) {
       })
 
     names(res) <- part
+
+    ## Second pass if data.frame result is desired
+    if( dataFrameResultQ ) {
+
+      res <-
+        purrr::map_df( names(res), function(nm) {
+
+          if( is.data.frame(res[[nm]]) ) {
+
+            cbind( ModelElement = nm, res[[nm]], stringsAsFactors = FALSE )
+
+          } else {
+
+            warning( paste0( "Not including the model element '", nm, "' in the result." ), call. = TRUE )
+
+            NULL
+          }
+
+        })
+
+      if( echoQ ) {
+        print( res )
+      }
+
+    }
 
     ecmObj$Value <- res
   }
@@ -739,11 +766,14 @@ ECMMonSimulate <- function( ecmObj, maxTime, ... ) {
 #' @param maxTime A numerical non-negative value for the maximum simulation time or NULL.
 #' If NULL the maximum time is derived from \code{ecmObj$Solution}.
 #' @param echoQ Should the plot be echoed or not?
+#' @param stockDescriptionsQ Should the stock descriptions be added or not?
+#' @param separatePlotsQ Should the stock plots be separated or not?
+#' @param ... Additional parameters for \code{\link{ggplot2::facet_wrap}}
 #' @return An ECMMon object.
 #' @details The plot is assigned to \code{ecmObj$Value}.
 #' @family Plot functions
 #' @export
-ECMMonPlotSolutions <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echoQ = TRUE ) {
+ECMMonPlotSolutions <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echoQ = TRUE, stockDescriptionsQ = TRUE, separatePlotsQ = FALSE, ... ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -768,13 +798,22 @@ ECMMonPlotSolutions <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echo
     dfQuery <- dfQuery %>% dplyr::filter( Time <= maxTime )
   }
 
-  dfQuery <-
-    dfQuery %>%
-    dplyr::mutate( Stock = paste0( Stock, ", ",  model$Stocks[ Stock ]) )
+  if( stockDescriptionsQ ) {
+    dfQuery <-
+      dfQuery %>%
+      dplyr::mutate( Stock = paste0( Stock, ", ",  model$Stocks[ Stock ]) )
+  }
 
-  res <-
-    ggplot2::ggplot(dfQuery) +
-    ggplot2::geom_line( ggplot2::aes( x = Time, y = Value, color = Stock ) )
+  if( separatePlotsQ ) {
+    res <-
+      ggplot2::ggplot(dfQuery) +
+      ggplot2::geom_line( ggplot2::aes( x = Time, y = Value, color = Stock ) ) +
+      ggplot2::facet_wrap( facets = ~Stock, ... )
+  } else {
+    res <-
+      ggplot2::ggplot(dfQuery) +
+      ggplot2::geom_line( ggplot2::aes( x = Time, y = Value, color = Stock ) )
+  }
 
   if( echoQ ) {
     print(res)
@@ -797,6 +836,7 @@ ECMMonPlotSolutions <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echo
 #' @param maxTime A numerical non-negative value for the maximum simulation time or NULL.
 #' If NULL the maximum time is derived from \code{ecmObj$Solution}.
 #' @param echoQ Should the plot be echoed or not?
+#' @param stockDescriptionsQ Should the stock descriptions be added or not?
 #' @param scales Scales argument \code{scales} for \code{\link{ggplot2::facet_wrap}}.
 #' @param ncol Number of columns \code{ncol} argument for \code{\link{ggplot2::facet_wrap}}.
 #' @param ... Additional parameters for \code{\link{ggplot2::geom_histogram}}.
@@ -804,7 +844,7 @@ ECMMonPlotSolutions <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echo
 #' @details The plot is assigned to \code{ecmObj$Value}.
 #' @family Plot functions
 #' @export
-ECMMonPlotSolutionHistograms <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echoQ = TRUE, scales = "free", ncol = 2, ... ) {
+ECMMonPlotSolutionHistograms <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echoQ = TRUE, stockDescriptionsQ = TRUE, scales = "free", ncol = 2, ... ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -829,9 +869,11 @@ ECMMonPlotSolutionHistograms <- function( ecmObj, stocksSpec = NULL, maxTime = N
     dfQuery <- dfQuery %>% dplyr::filter( Time <= maxTime )
   }
 
-  dfQuery <-
-    dfQuery %>%
-    dplyr::mutate( Stock = paste0( Stock, ", ",  model$Stocks[ Stock ]) )
+  if( stockDescriptionsQ ) {
+    dfQuery <-
+      dfQuery %>%
+      dplyr::mutate( Stock = paste0( Stock, ", ",  model$Stocks[ Stock ]) )
+  }
 
   res <-
     dfQuery %>%
@@ -848,3 +890,86 @@ ECMMonPlotSolutionHistograms <- function( ecmObj, stocksSpec = NULL, maxTime = N
   ecmObj
 }
 
+
+##===========================================================
+## ECMMonExport
+##===========================================================
+
+#' Export model and solution into CSV files.
+#' @description Exports the model elements and solution data frame into CSV files
+#' with a specified prefix and in a specified directory.
+#' @param ecmObj An ECMMon object.
+#' @param directoryName A directory name for the export. If \code{NULL} no files are written.
+#' @param modelID A string.
+#' @param fileNamePrefix A string.
+#' @return An ECMMon object or \code{ECMMonFailureSymbol}.
+#' @details The CSV files are written in the specified directory \code{directoryName}.
+#' The file name prefix \code{fileNamePrefix} is concatenated to the generic file names:
+#' \code{"longFormComputationSpecification.csv", "featureMatrix.csv", "timeCellsInterpretation.csv", "featureMatrixTimeSeries.csv"}.
+#' The conversion into long form of the computation specification is considered to be
+#' more convenient from a "model management" perspective.
+#' The data to be exported is assigned to result's \code{$Value}.
+#' @export
+ECMMonExport <- function( ecmObj, directoryName, modelID, fileNamePrefix = paste0(modelID,"-") ) {
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  if( !( is.character(directoryName) && file.exists(directoryName) || is.null(directoryName) ) ) {
+    warning( "The argument directoryName is expected to be a string that is a valid directory name or NULL.", call. = TRUE )
+    return(ECMMonFailureSymbol)
+  }
+
+  if( !is.character(modelID) ) {
+    warning( "The argument modelID is expected to be a string.", call. = TRUE )
+    return(ECMMonFailureSymbol)
+  }
+
+  if( !(is.null(fileNamePrefix) || is.character(fileNamePrefix) ) ) {
+    warning( "The argument fileNamePrefix is expected to be a string or NULL.", call. = TRUE )
+    return(ECMMonFailureSymbol)
+  }
+
+  if( is.null(fileNamePrefix) ) { fileNamePrefix <- "" }
+
+  ## Export model
+  ecmObj <- ecmObj %>% ECMMonEchoModelTableForm( dataFrameResultQ = TRUE, echoQ = FALSE )
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  dfModel <- ecmObj %>% ECMMonTakeValue
+
+  if( !is.data.frame(dfModel) ) { return(ECMMonFailureSymbol) }
+
+  if( !is.null(directoryName) ) {
+    write.csv( x = dfModel, file = file.path( directoryName, paste0(fileNamePrefix, "model.csv")), row.names = FALSE )
+  }
+
+  ## Export solution
+  if( !is.null(directoryName) && is.data.frame(ecmObj$Solution) ) {
+    write.csv( x = ecmObj$Solution, file = file.path( directoryName, paste0(fileNamePrefix, "solution.csv")), row.names = FALSE )
+  }
+
+  ecmObj$Value <- list( Model = dfModel, Solution = ecmObj$Solution )
+
+  ## Result
+  ecmObj
+}
+
+
+##===========================================================
+## Support functions
+##===========================================================
+
+#' Verify does a directory have ECMMon data files.
+#' @description Verify does a directory have the CSV files \code{model.csv}
+#' and \code{solution.csv}.
+#' @param directoryName A directory name string.
+#' @return A logical value.
+#' @family Non-monadic functions.
+#' @export
+ECMMonVerifyDataDirectory <- function( directoryName ) {
+  if( !is.character(directoryName) ) {
+    stop("A string is expected for the argument directoryName.", call. = TRUE )
+  }
+  VerifyDataDirectory( directoryName )
+}

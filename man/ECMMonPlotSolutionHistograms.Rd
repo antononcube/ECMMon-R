@@ -9,6 +9,7 @@ ECMMonPlotSolutionHistograms(
   stocksSpec = NULL,
   maxTime = NULL,
   echoQ = TRUE,
+  stockDescriptionsQ = TRUE,
   scales = "free",
   ncol = 2,
   ...
@@ -23,6 +24,8 @@ ECMMonPlotSolutionHistograms(
 If NULL the maximum time is derived from \code{ecmObj$Solution}.}
 
 \item{echoQ}{Should the plot be echoed or not?}
+
+\item{stockDescriptionsQ}{Should the stock descriptions be added or not?}
 
 \item{scales}{Scales argument \code{scales} for \code{\link{ggplot2::facet_wrap}}.}
 

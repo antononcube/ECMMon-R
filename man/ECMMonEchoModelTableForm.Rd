@@ -4,13 +4,20 @@
 \alias{ECMMonEchoModelTableForm}
 \title{Echo model table form}
 \usage{
-ECMMonEchoModelTableForm(ecmObj, part = NULL, echoQ = TRUE)
+ECMMonEchoModelTableForm(
+  ecmObj,
+  part = NULL,
+  echoQ = TRUE,
+  dataFrameResultQ = FALSE
+)
 }
 \arguments{
 \item{ecmObj}{An ECMMon object.}
 
 \item{part}{A string that which part of the model to echo.
 If NULL all parts are echoed.}
+
+\item{dataFrameResultQ}{Should the result be a data frame or not?}
 }
 \value{
 An ECMMon object
