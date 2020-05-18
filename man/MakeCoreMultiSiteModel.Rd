@@ -12,14 +12,9 @@ MakeCoreMultiSiteModel(model, cellIdentifiers)
 \item{cellIdentifiers}{A a character vector of cell identifiers.}
 }
 \value{
-A character vector
+A model object
 }
 \description{
 Makes core multi-site model.
 }
-\seealso{
-Other Epidemiology Model Query functions: 
-\code{\link{GetRates}()},
-\code{\link{GetStocks}()}
-}
-\concept{Epidemiology Model Query functions}
+\concept{Epidemiology Model Modification functions}

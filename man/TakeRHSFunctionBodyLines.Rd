@@ -18,6 +18,8 @@ Takes RHSFunction body lines of a model.
 \seealso{
 Other Epidemiology Model Modifier functions: 
 \code{\link{AddModelIdentifier}()},
-\code{\link{JoinModels}()}
+\code{\link{JoinModels}()},
+\code{\link{MakeMigrationEquations}()},
+\code{\link{ToSiteCompartmentalModel}()}
 }
 \concept{Epidemiology Model Modifier functions}

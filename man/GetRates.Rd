@@ -19,7 +19,6 @@ Gets the rate symbols that have descriptions matching specified patterns.
 }
 \seealso{
 Other Epidemiology Model Query functions: 
-\code{\link{GetStocks}()},
-\code{\link{MakeCoreMultiSiteModel}()}
+\code{\link{GetStocks}()}
 }
 \concept{Epidemiology Model Query functions}

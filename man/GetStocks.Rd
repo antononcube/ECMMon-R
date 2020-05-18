@@ -19,7 +19,6 @@ Gets the stock symbols that have descriptions matching specified patterns.
 }
 \seealso{
 Other Epidemiology Model Query functions: 
-\code{\link{GetRates}()},
-\code{\link{MakeCoreMultiSiteModel}()}
+\code{\link{GetRates}()}
 }
 \concept{Epidemiology Model Query functions}

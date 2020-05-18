@@ -33,6 +33,8 @@ The original model object has \code{birthTermsQ} in the closure of \code{model$R
 \seealso{
 Other Epidemiology Model Modifier functions: 
 \code{\link{JoinModels}()},
-\code{\link{TakeRHSFunctionBodyLines}()}
+\code{\link{MakeMigrationEquations}()},
+\code{\link{TakeRHSFunctionBodyLines}()},
+\code{\link{ToSiteCompartmentalModel}()}
 }
 \concept{Epidemiology Model Modifier functions}
