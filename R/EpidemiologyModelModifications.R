@@ -29,6 +29,10 @@ NULL
 ## SparseMatrixQ
 ##===========================================================
 
+#' Sparse matrix check
+#' @param x An object.
+#' @return A logical value
+#' @export
 SparseMatrixQ <- function (x)
 {
   sum(c("dgCMatrix", "dgRMatrix", "dgTMatrix") %in% class(x)) > 0
