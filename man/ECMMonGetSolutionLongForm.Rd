@@ -4,12 +4,19 @@
 \alias{ECMMonGetSolutionLongForm}
 \title{Get long form solution.}
 \usage{
-ECMMonGetSolutionLongForm(ecmObj, stockDescriptionsQ = TRUE)
+ECMMonGetSolutionLongForm(
+  ecmObj,
+  stockDescriptionsQ = TRUE,
+  siteIdentifiersQ = TRUE
+)
 }
 \arguments{
 \item{ecmObj}{An ECMMon object.}
 
 \item{stockDescriptionsQ}{Should a column with the stock descriptions be added or not?}
+
+\item{siteIdentifiersQ}{Should a column with site identifiers be added or not?
+If \code{ecmObj} has only a single-site model, the that column will have all zeroes.}
 }
 \value{
 An ECMMon object.

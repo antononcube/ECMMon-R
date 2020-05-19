@@ -4,10 +4,12 @@
 \alias{ECMMonGetDefaultModel}
 \title{Get default model object.}
 \usage{
-ECMMonGetDefaultModel(ecmObj)
+ECMMonGetDefaultModel(ecmObj, functionName = "ECMMonGetDefaultModel")
 }
 \arguments{
 \item{ecmObj}{An ECMMon object.}
+
+\item{functionName}{The name of the delegating function.}
 }
 \value{
 An ECMMon object.

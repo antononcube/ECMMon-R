@@ -456,24 +456,25 @@ ECMMonTakeSolution <- function( ecmObj, functionName = "ECMMonTakeSolution" ) {
 #' Get default model object.
 #' @description Gets the default model of the monad object.
 #' @param ecmObj An ECMMon object.
+#' @param functionName The name of the delegating function.
 #' @return An ECMMon object.
 #' @family Get functions
 #' @export
-ECMMonGetDefaultModel <- function( ecmObj ) {
+ECMMonGetDefaultModel <- function( ecmObj, functionName = "ECMMonGetDefaultModel" ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !is.null(ecmObj$MultiSiteModel) ) {
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = functionName,  logicalResult = TRUE, warningQ = FALSE) ) {
 
     ecmObj$Value <- ecmObj$MultiSiteModel
 
-  } else if( !is.null(ecmObj$SingleSiteModel) ) {
+  } else if( ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = functionName,  logicalResult = TRUE, warningQ = FALSE) ) {
 
     ecmObj$Value <- ecmObj$SingleSiteModel
 
   } else {
 
-    warning( "Cannot find a model.", call. = TRUE )
+    warning( "Cannot find a model. (Neither single-site nor multi-site.)", call. = TRUE )
     return(ECMMonFailureSymbol)
 
   }
@@ -490,12 +491,14 @@ ECMMonGetDefaultModel <- function( ecmObj ) {
 #' @description Gets the long form of the solution data frame \code{ecmObj$Solution}.
 #' @param ecmObj An ECMMon object.
 #' @param stockDescriptionsQ Should a column with the stock descriptions be added or not?
+#' @param siteIdentifiersQ Should a column with site identifiers be added or not?
+#' If \code{ecmObj} has only a single-site model, the that column will have all zeroes.
 #' @return An ECMMon object.
 #' @details The stocks types are derived from the stocks descriptions, \code{ecmObj$Stocks}.
 #' The stocks types are "Population", "Money", "Other".
 #' @family Get functions
 #' @export
-ECMMonGetSolutionLongForm <- function( ecmObj, stockDescriptionsQ = TRUE ) {
+ECMMonGetSolutionLongForm <- function( ecmObj, stockDescriptionsQ = TRUE, siteIdentifiersQ = TRUE ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -515,6 +518,26 @@ ECMMonGetSolutionLongForm <- function( ecmObj, stockDescriptionsQ = TRUE ) {
       dfQuery %>%
       dplyr::mutate( Description = model$Stocks[ Stock ] )
 
+  }
+
+
+  if( siteIdentifiersQ ) {
+
+    if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonGetSolutionLongForm",  logicalResult = TRUE, warningQ = FALSE ) ) {
+
+      model <- ecmObj %>% ECMMonGetDefaultModel %>% ECMMonTakeValue
+
+      dfQuery <-
+        dfQuery %>%
+        dplyr::mutate( SiteID = gsub( "(.*)_([[:digit:]]+)_t$", "\\2", names( model$Stocks[ Stock ] ) ) )
+
+    } else {
+
+      dfQuery <-
+        dfQuery %>%
+        dplyr::mutate( SiteID = "0" )
+
+    }
   }
 
   ecmObj$Value <- dfQuery
@@ -542,11 +565,9 @@ ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE, dataFra
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonEchoModelTableForm",  logicalResult = TRUE) ) {
-    return(ECMMonFailureSymbol)
-  }
+  model <- ecmObj %>% ECMMonGetDefaultModel( functionName = "ECMMonEchoModelTableForm" ) %>% ECMMonTakeValue
 
-  model <- ecmObj %>% ECMMonTakeSingleSiteModel
+  if( ECMMonFailureQ(model) ) { return(ECMMonFailureSymbol) }
 
   if( is.null(part) ) {
     part <- names(model)
@@ -634,24 +655,14 @@ ECMMonAssignInitialConditions <- function( ecmObj, initConds ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !( ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonAssignInitialConditions",  logicalResult = TRUE, warningQ = FALSE) ||
-         ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignInitialConditions",  logicalResult = TRUE, warningQ = FALSE) ) ) {
-    warning( "Cannot find a model. (Neither single-site nor a multi-site.)", call. = TRUE )
-    return(ECMMonFailureSymbol)
-  }
-
-
   if( !( is.numeric(initConds) && is.character(names(initConds)) ) ) {
     warning( "The argument initConds is expected to be a numerical vector with named elements.", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
 
-  ## Get model
-  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignInitialConditions",  logicalResult = TRUE, warningQ = FALSE) ) {
-    model <- ecmObj$MultiSiteModel
-  } else {
-    model <- ecmObj$SingleSiteModel
-  }
+  model <- ecmObj %>% ECMMonGetDefaultModel( functionName = "ECMMonAssignInitialConditions" ) %>% ECMMonTakeValue
+
+  if( ECMMonFailureQ(model) ) {return(ECMMonFailureSymbol) }
 
   if( mean( names(initConds) %in% names(model$InitialConditions) ) < 1 ) {
     warning( "Some of the names of initConds are not known stocks.", call. = TRUE )
@@ -687,25 +698,14 @@ ECMMonAssignRateValues <- function( ecmObj, rateValues ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !( ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonAssignRateValues",  logicalResult = TRUE, warningQ = FALSE) ||
-         ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignRateValues",  logicalResult = TRUE, warningQ = FALSE) ) ) {
-    warning( "Cannot find a model. (Neither single-site nor a multi-site.)", call. = TRUE )
-    return(ECMMonFailureSymbol)
-  }
-
-
   if( !( ( is.numeric(rateValues) || is.list(rateValues) ) && is.character(names(rateValues)) ) ) {
     warning( "The argument rateValues is expected to be a numerical vector with named elements or a list of functions and numbers with named elements", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
 
+  model <- ecmObj %>% ECMMonGetDefaultModel( functionName = "ECMMonAssignRateValues" ) %>% ECMMonTakeValue
 
-  ## Get model
-  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignRateValues",  logicalResult = TRUE, warningQ = FALSE) ) {
-    model <- ecmObj$MultiSiteModel
-  } else {
-    model <- ecmObj$SingleSiteModel
-  }
+  if( ECMMonFailureQ(model) ) { return(ECMMonFailureSymbol) }
 
   frKnown = mean( names(rateValues) %in% names(model$RateRules) )
 
@@ -792,24 +792,16 @@ ECMMonSimulate <- function( ecmObj, maxTime, ... ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !( ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE, warningQ = FALSE) ||
-         ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE, warningQ = FALSE) ) ) {
-    warning( "Cannot find a model. (Neither single-site nor a multi-site.)", call. = TRUE )
-    return(ECMMonFailureSymbol)
-  }
-
   if( !( is.numeric(maxTime) && maxTime >=0 ) ) {
     warning( "The argument maxTime is expected to be a non-negative number.", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
 
-  times <- seq( 0, maxTime, 1)
+  model <- ecmObj %>% ECMMonGetDefaultModel( functionName = "ECMMonSimulate" ) %>% ECMMonTakeValue
 
-  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE, warningQ = FALSE) ) {
-    model <- ecmObj$MultiSiteModel
-  } else {
-    model <- ecmObj$SingleSiteModel
-  }
+  if( ECMMonFailureQ(model) ) { return(ECMMonFailureSymbol) }
+
+  times <- seq( 0, maxTime, 1)
 
   sol <- deSolve::ode(y = model[["InitialConditions"]], times = times, func = model[["RHSFunction"]], parms = model[["RateRules"]], ... )
 
