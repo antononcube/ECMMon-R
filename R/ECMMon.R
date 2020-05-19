@@ -117,10 +117,11 @@ ECMMonTakeValue <- function( ecmObj ) {
 #' @param memberName The name of the member to be checked.
 #' @param memberPrettyName A pretty member name (for messages).
 #' @param functionName The name of the delegating function.
-#' @param logicalResultQ Should the result be a logical value?
+#' @param logicalResultQ Should the result be a logical value or not?
+#' @param warningQ Should warning message be issued or not?
 #' @return A logical value or an ECMMon object.
 #' @export
-ECMMonMemberPresenceCheck <- function( ecmObj, memberName, memberPrettyName = memberName, functionName = "", logicalResultQ = FALSE ) {
+ECMMonMemberPresenceCheck <- function( ecmObj, memberName, memberPrettyName = memberName, functionName = "", logicalResultQ = FALSE, warningQ = TRUE ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -129,7 +130,9 @@ ECMMonMemberPresenceCheck <- function( ecmObj, memberName, memberPrettyName = me
   if( nchar(functionName) > 0 ) { functionName <- paste0( functionName, ":: ") }
 
   if( is.null(ecmObj[[memberName]]) ) {
-    warning( paste0( functionName, paste0("Cannot find ", memberPrettyName, ".") ), call. = TRUE )
+    if( warningQ ) {
+      warning( paste0( functionName, paste0("Cannot find ", memberPrettyName, ".") ), call. = TRUE )
+    }
     res <- FALSE
   }
 
@@ -631,26 +634,37 @@ ECMMonAssignInitialConditions <- function( ecmObj, initConds ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE) ) {
+  if( !( ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonAssignInitialConditions",  logicalResult = TRUE, warningQ = FALSE) ||
+         ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignInitialConditions",  logicalResult = TRUE, warningQ = FALSE) ) ) {
+    warning( "Cannot find a model. (Neither single-site nor a multi-site.)", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
+
 
   if( !( is.numeric(initConds) && is.character(names(initConds)) ) ) {
     warning( "The argument initConds is expected to be a numerical vector with named elements.", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
 
-  ## This should be changed when MultiSiteModel is introduced.
-  model <- ecmObj$SingleSiteModel
+  ## Get model
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignInitialConditions",  logicalResult = TRUE, warningQ = FALSE) ) {
+    model <- ecmObj$MultiSiteModel
+  } else {
+    model <- ecmObj$SingleSiteModel
+  }
 
   if( mean( names(initConds) %in% names(model$InitialConditions) ) < 1 ) {
-    warning( "Some of the names of initConds are not known stocks in ecmObj$SingleSiteModel.", call. = TRUE )
+    warning( "Some of the names of initConds are not known stocks.", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
 
   model$InitialConditions[ names(initConds) ] <- initConds
 
-  ecmObj$SingleSiteModel <- model
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignInitialConditions",  logicalResult = TRUE, warningQ = FALSE) ) {
+    ecmObj$MultiSiteModel <- model
+  } else {
+    ecmObj$SingleSiteModel <- model
+  }
 
   ecmObj
 }
@@ -664,7 +678,7 @@ ECMMonAssignInitialConditions <- function( ecmObj, initConds ) {
 #' @description If there is a multi-site model assign rate values to it.
 #' Otherwise the rate values are assigned to the single-site model.
 #' @param ecmObj An ECMMon object.
-#' @param initConds A numerical vector with named elements.
+#' @param rateValues A numerical vector with named elements.
 #' The names are expected to be known stocks in the model.
 #' @return An ECMMon object.
 #' @family Simulation functions
@@ -673,27 +687,35 @@ ECMMonAssignRateValues <- function( ecmObj, rateValues ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE) ) {
+  if( !( ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonAssignRateValues",  logicalResult = TRUE, warningQ = FALSE) ||
+         ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignRateValues",  logicalResult = TRUE, warningQ = FALSE) ) ) {
+    warning( "Cannot find a model. (Neither single-site nor a multi-site.)", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
+
 
   if( !( ( is.numeric(rateValues) || is.list(rateValues) ) && is.character(names(rateValues)) ) ) {
     warning( "The argument rateValues is expected to be a numerical vector with named elements or a list of functions and numbers with named elements", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
 
-  ## This should be changed when MultiSiteModel is introduced.
-  model <- ecmObj$SingleSiteModel
+
+  ## Get model
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignRateValues",  logicalResult = TRUE, warningQ = FALSE) ) {
+    model <- ecmObj$MultiSiteModel
+  } else {
+    model <- ecmObj$SingleSiteModel
+  }
 
   frKnown = mean( names(rateValues) %in% names(model$RateRules) )
 
   if( 0 < frKnown && frKnown < 1 ) {
 
-    warning( "Some of the names of rateValues are not known rates in ecmObj$SingleSiteModel.", call. = TRUE )
+    warning( "Some of the names of rateValues are not known rates.", call. = TRUE )
 
   } else if( frKnown == 0 ) {
 
-    warning( "None of the names of rateValues are not known rates in ecmObj$SingleSiteModel.", call. = TRUE )
+    warning( "None of the names of rateValues are known rates.", call. = TRUE )
 
   }
 
@@ -707,7 +729,47 @@ ECMMonAssignRateValues <- function( ecmObj, rateValues ) {
   #   model$RateRules[ names(rateValues) ] <- rateValues
   # }
 
-  ecmObj$SingleSiteModel <- model
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignRateValues",  logicalResult = TRUE, warningQ = FALSE) ) {
+    ecmObj$MultiSiteModel <- model
+  } else {
+    ecmObj$SingleSiteModel <- model
+  }
+
+  ecmObj
+}
+
+
+##===========================================================
+## Simulate
+##===========================================================
+
+#' Extend by adjacency matrix
+#' @description Extends monad's single site model into multi-site model using the numerical matrix mat.
+#' If there is a multi-site models simulates with that model for the specified maximum time.
+#' Otherwise the simulation is done with single-site model.
+#' @param ecmObj An ECMMon object.
+#' @param mat A matrix.
+#' @param migratingStocks A a character vector with stocks (names.)
+#' @param ... Additional arguments for \code{ToSiteCompartmentalModel}.
+#' @return An ECMMon object.
+#' @family Simulation functions
+#' @export
+ECMMonExtendByAdjacencyMatrix <- function( ecmObj, mat, migratingStocks = NULL, ... ) {
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE) ) {
+    return(ECMMonFailureSymbol)
+  }
+
+  if( !( is.matrix(mat) || SparseMatrixQ(mat) ) ) {
+    # stop( "The argument data is expected to be a matrix, a sparse matrix, or a (matrix long form) data frame with columns c('i', 'j', 'x') .", call. = TRUE )
+    stop( "The argument data is expected to be a matrix, a sparse matrix.", call. = TRUE )
+  }
+
+  modelMultiSite <- ToSiteCompartmentalModel( model = ecmObj$SingleSiteModel, mat = mat, migratingStocks = migratingStocks, ... )
+
+  ecmObj <- ecmObj %>% ECMMonSetMultiSiteModel( modelMultiSite )
 
   ecmObj
 }
@@ -730,7 +792,9 @@ ECMMonSimulate <- function( ecmObj, maxTime, ... ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE) ) {
+  if( !( ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE, warningQ = FALSE) ||
+         ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE, warningQ = FALSE) ) ) {
+    warning( "Cannot find a model. (Neither single-site nor a multi-site.)", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
 
@@ -741,7 +805,11 @@ ECMMonSimulate <- function( ecmObj, maxTime, ... ) {
 
   times <- seq( 0, maxTime, 1)
 
-  model <- ecmObj$SingleSiteModel
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE, warningQ = FALSE) ) {
+    model <- ecmObj$MultiSiteModel
+  } else {
+    model <- ecmObj$SingleSiteModel
+  }
 
   sol <- deSolve::ode(y = model[["InitialConditions"]], times = times, func = model[["RHSFunction"]], parms = model[["RateRules"]], ... )
 
@@ -791,7 +859,7 @@ ECMMonPlotSolutions <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echo
 
     dfQuery <-
       dfQuery %>%
-      dplyr::filter( Stock %in% GetStocks( model, stocksSpec ) )
+      dplyr::filter( Stock %in% GetStocks( model, stocksSpec, applyToStockNamesQ = TRUE ) )
   }
 
   if( is.numeric(maxTime) ) {
@@ -862,7 +930,7 @@ ECMMonPlotSolutionHistograms <- function( ecmObj, stocksSpec = NULL, maxTime = N
 
     dfQuery <-
       dfQuery %>%
-      dplyr::filter( Stock %in% GetStocks( model, stocksSpec ) )
+      dplyr::filter( Stock %in% GetStocks( model, stocksSpec, applyToStockNamesQ = TRUE ) )
   }
 
   if( is.numeric(maxTime) ) {

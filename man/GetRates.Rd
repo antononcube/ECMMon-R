@@ -4,18 +4,20 @@
 \alias{GetRates}
 \title{Get rate symbols.}
 \usage{
-GetRates(model, patterns)
+GetRates(model, patterns, applyToStockNamesQ = FALSE)
 }
 \arguments{
 \item{model}{A model object.}
 
 \item{patterns}{A a character vector of patterns to be applied to the descriptions of model's rates.}
+
+\item{applyToStockNamesQ}{Should the patterns be applied also to the stock names or not?}
 }
 \value{
 A character vector
 }
 \description{
-Gets the rate symbols that have descriptions matching specified patterns.
+Gets the rate symbols that have descriptions (or names) matching specified patterns.
 }
 \seealso{
 Other Epidemiology Model Query functions: 
