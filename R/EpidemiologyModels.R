@@ -334,10 +334,10 @@ SEI2RModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTerm
              c(
                TP0 = 10^5,
                deathRateTP = 0.0000219178,
-               deathRateINSP = 0.015 / 28,
-               deathRateISSP = 0.035 / 28,
-               aip = 28,
-               aincp = 14,
+               deathRateINSP = 0.015 / 26,
+               deathRateISSP = 0.035 / 26,
+               aip = 26,
+               aincp = 6,
                contactRateINSP = 0.56,
                contactRateISSP = 0.56,
                sspf = 0.2,
@@ -487,13 +487,13 @@ SEI2HRModel <- function( initialConditionsQ = TRUE, rateRulesQ = TRUE, birthsTer
                deathRateTP = 0.0000219178,
                deathRateINSP = 0.015 / 28, # 0.015 * aip
                deathRateISSP = 0.035 / 28, # 0.015 * aip
-               aip = 28,
-               aincp = 14,
+               aip = 26,
+               aincp = 6,
                contactRateINSP = 0.56,
                contactRateISSP = 0.56,
                sspf = 0.2,
                lpcr = 1,
-               deathRateHP = 0.25 * 0.035 / 28, # 0.25 * deathRateISSP
+               deathRateHP = 0.25 * 0.035 / 26, # 0.25 * deathRateISSP
                contactRateHP = 0.1 * 0.56, # 0.1 * contactRateISSP
                nhbrTP = 2.9 / 1000, # 2.9 hospital beds per 1000 people in USA
                nhbcr = 0,
