@@ -16,7 +16,7 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ## Written by Anton Antonov,
-## antononcube @@@ gmail ... com,
+## antononcube @@@ gmail ... com ,
 ## Windermere, Florida, USA.
 ##===========================================================
 
@@ -40,13 +40,14 @@ SparseMatrixQ <- function (x)
 ##===========================================================
 
 #' Get stock symbols.
-#' @description Gets the stock symbols that have descriptions matching specified patterns.
+#' @description Gets the stock symbols that have descriptions (or names) matching specified patterns.
 #' @param model A model object.
 #' @param patterns A a character vector of patterns to be applied to the descriptions of model's stocks.
+#' @param applyToStockNamesQ Should the patterns be applied also to the stock names or not?
 #' @return A character vector
 #' @family Epidemiology Model Query functions
 #' @export
-GetStocks <- function( model, patterns ) {
+GetStocks <- function( model, patterns, applyToStockNamesQ = FALSE ) {
 
   if( !EpidemiologyModelQ(model) ) {
     stop( "The argument model is expected to be an epidemiology model object.", call. = TRUE )
@@ -61,7 +62,17 @@ GetStocks <- function( model, patterns ) {
   lsFocus <- purrr::map( patterns, function(ss) { grep( pattern = ss, x = lsAll, value = TRUE ) } )
   lsFocus <- as.character( unlist( lsFocus ) )
 
-  names( model$Stocks[ model$Stocks %in% lsFocus  ] )
+  if( ! applyToStockNamesQ ) {
+
+    names( model$Stocks[ model$Stocks %in% lsFocus  ] )
+
+  } else {
+
+    lsFocus2 <- purrr::map( patterns, function(ss) { grep( pattern = ss, x = names(lsAll), value = TRUE ) } )
+    lsFocus2 <- as.character( unlist( lsFocus2 ) )
+
+    names( model$Stocks[ ( model$Stocks %in% lsFocus ) | ( names(model$Stocks) %in% lsFocus2 ) ] )
+  }
 
 }
 
@@ -71,13 +82,14 @@ GetStocks <- function( model, patterns ) {
 ##===========================================================
 
 #' Get rate symbols.
-#' @description Gets the rate symbols that have descriptions matching specified patterns.
+#' @description Gets the rate symbols that have descriptions (or names) matching specified patterns.
 #' @param model A model object.
 #' @param patterns A a character vector of patterns to be applied to the descriptions of model's rates.
+#' @param applyToStockNamesQ Should the patterns be applied also to the stock names or not?
 #' @return A character vector
 #' @family Epidemiology Model Query functions
 #' @export
-GetRates <- function( model, patterns ) {
+GetRates <- function( model, patterns, applyToStockNamesQ = FALSE ) {
 
   ## This code is very similar / same as GetStocks -- it has to be refactored.
 
@@ -94,7 +106,17 @@ GetRates <- function( model, patterns ) {
   lsFocus <- purrr::map( patterns, function(ss) { grep( pattern = ss, x = lsAll, value = TRUE ) } )
   lsFocus <- as.character( unlist( lsFocus ) )
 
-  names( model$Rates[ model$Rates %in% lsFocus  ] )
+  if( ! applyToStockNamesQ ) {
+
+    names( model$Rates[ model$Rates %in% lsFocus  ] )
+
+  } else {
+
+    lsFocus2 <- purrr::map( patterns, function(ss) { grep( pattern = ss, x = names(lsAll), value = TRUE ) } )
+    lsFocus2 <- as.character( unlist( lsFocus2 ) )
+
+    names( model$Stocks[ ( model$Rates %in% lsFocus ) | ( names(model$Rates) %in% lsFocus2 ) ] )
+  }
 
 }
 

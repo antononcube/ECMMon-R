@@ -9,7 +9,7 @@ ECMMonAssignRateValues(ecmObj, rateValues)
 \arguments{
 \item{ecmObj}{An ECMMon object.}
 
-\item{initConds}{A numerical vector with named elements.
+\item{rateValues}{A numerical vector with named elements.
 The names are expected to be known stocks in the model.}
 }
 \value{
@@ -22,6 +22,7 @@ Otherwise the rate values are assigned to the single-site model.
 \seealso{
 Other Simulation functions: 
 \code{\link{ECMMonAssignInitialConditions}()},
+\code{\link{ECMMonExtendByAdjacencyMatrix}()},
 \code{\link{ECMMonSimulate}()}
 }
 \concept{Simulation functions}
