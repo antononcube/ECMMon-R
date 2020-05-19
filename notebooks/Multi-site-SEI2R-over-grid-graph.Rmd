@@ -1,0 +1,155 @@
+---
+title: "Multi-site SEI2R over a grid graph"
+author: Anton Antonov
+date: 2020-05-19
+output: html_notebook
+---
+
+```{r}
+library(ECMMon)
+library(tidyverse)
+library(igraph)
+#devtools::install_github('thomasp85/gganimate')
+library(gganimate)
+```
+
+# Introduction
+
+# Main workflow
+
+## Make the graph
+
+In this section we do the model extension and simulation over a regular grid graph with a constant traveling patterns matrix.
+
+Here we create a grid graph with directed edges:
+
+```{r}
+m = 7; n = 12;
+grGrid <- igraph::make_lattice( c(m,n), directed = TRUE )
+igraph::layout_on_grid(grGrid)
+plot(grGrid)
+```
+
+
+Note that:
+
+- There is one directed edge between any two edge-connected nodes
+
+- All horizontal edges point in one direction
+
+- All vertical edges point in one direction
+
+- The edges are directed from nodes with smaller indexes to nodes with larger indexes.
+
+Here we make a constant traveling matrix and summarize it:
+
+
+```{r}
+matGridTravel <- as_adjacency_matrix(grGrid, sparse = TRUE) # or just grGrid[]
+matGridTravel <- matGridTravel * 1000
+Matrix::image(matGridTravel)
+```
+
+```{r}
+summary(matGridTravel@x)
+```
+
+## Scaling the model
+
+Here we scale the SEI2R model with the grid graph constant traveling matrix:
+
+```{r}
+model1 <- SEI2RModel(initialConditionsQ = TRUE, rateRulesQ = TRUE)
+```
+
+```{r}
+model1 <- ECMMonUnit(model1) %>% ECMMonAssignRateValues( rateValues = c( "contactRateISSP" = 0.5, "contactRateINSP" = 0.5 ) ) %>% ECMMonTakeSingleSiteModel
+```
+
+```{r}
+modelGrid <- ToSiteCompartmentalModel( model = model1, mat = matGridTravel, migratingStocks = ("SPt") ) 
+```
+
+
+```{r}
+system.time(
+  ecmObj <- 
+    ECMMonUnit(model1) %>% 
+    ECMMonAssignRateValues( rateValues = c("lpcr" = 0, "TP0" = 10^6, "contactRateISSP" = 0.5, "contactRateINSP" = 0.5, "aip" = 26, "aincp" = 6 ) ) %>% 
+    ECMMonAssignInitialConditions( initConds = c("ISSPt" = 0, "INSPt" = 0, "SPt" = 10^6-1 ) ) %>% 
+    ECMMonExtendByAdjacencyMatrix( mat = matGridTravel, migratingStocks = c( "SPt", "EPt", "RPt" ) ) %>% 
+    ECMMonAssignInitialConditions( initConds = c("ISSP_1_t" = 1, "INSP_1_t" = 0 ) ) %>% 
+    ECMMonSimulate( maxTime = 365, method = "rk4" )
+)
+```
+
+```{r}
+ecmObj <- 
+  ecmObj %>% 
+  ECMMonPlotSolutions( stocksSpec = "_1_", stockDescriptionsQ = FALSE, separatePlotsQ = FALSE  )
+```
+
+```{r}
+ecmObj <- 
+  ecmObj %>% 
+  ECMMonPlotSolutions( stocksSpec = paste0( "_", m*n, "_"), stockDescriptionsQ = FALSE, separatePlotsQ = FALSE  )
+```
+
+```{r}
+dfSolutions <- 
+  ecmObj %>% 
+  ECMMonGetSolutionLongForm( siteIdentifiersQ = TRUE ) %>% 
+  ECMMonTakeValue
+dfSolutions
+```
+
+```{r}
+dfPlotQuery <- 
+  dfSolutions %>% 
+  dplyr::filter( Description == "Infected Normally Symptomatic Population") %>% 
+  dplyr::mutate( nSiteID = as.numeric(SiteID) ) %>% 
+  dplyr::mutate( i = (nSiteID - 1) %/% m + 1, j = nSiteID - m * ( nSiteID - 1 ) %/% m ) %>% 
+  dplyr::group_by( SiteID ) %>% 
+  dplyr::mutate( ValueNormalized = Value / max(Value) ) %>% 
+  dplyr::ungroup() %>% 
+  dplyr::arrange( Time, nSiteID, Stock )
+dfPlotQuery
+```
+
+```{r}
+ggplot( dfPlotQuery %>% dplyr::filter( Time %/% 5 == Time / 5 ) ) +
+  geom_tile( aes( x = i, y = j, fill = ValueNormalized ) ) +
+  scale_fill_distiller(palette = "Spectral") +
+  facet_wrap( ~Time )
+```
+
+
+```{r}
+ggaPlot <- 
+  ggplot( dfPlotQuery %>% dplyr::filter( Time %/% 5 == Time / 5 ) ) +
+  geom_tile( aes( x = i, y = j, fill = ValueNormalized ) ) +
+  scale_fill_distiller(palette = "Spectral") +
+  gganimate::transition_time( time = Time )
+```
+
+```{r}
+gganimate::animate(ggaPlot, renderer = ffmpeg_renderer(), width = 480, height = round( 480 * m / n ) )
+```
+
+# Grid graph values
+
+```{r}
+# Set up resolution and palette.
+my_resolution <- 100
+my_palette    <-  colorRampPalette(c('blue','red'))
+
+# This gives you the colors you want for every point.
+my_max    <-  15
+my_vector <-  1:15 / my_max
+my_colors <-  my_palette(my_resolution)[as.numeric(cut(my_vector, breaks=my_resolution))]
+```
+
+```{r}
+plot.igraph(grGrid, vertex.color = my_colors  )
+```
+
