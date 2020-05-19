@@ -15,7 +15,6 @@ RoxygenNote: 7.1.0
 Collate: 
     'EpidemiologyModels.R'
     'EpidemiologyModelModifications.R'
-    'InterfaceFunctions.R'
     'ECMMon.R'
 Imports:
     deSolve (>= 1.28.0),
