@@ -25,7 +25,7 @@
 #' @import magrittr
 #' @import purrr
 #' @import dplyr
-#' @improt tidyr
+#' @import tidyr
 #' @import ggplot2
 NULL
 
@@ -792,7 +792,7 @@ ECMMonSimulate <- function( ecmObj, maxTime, ... ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !( is.numeric(maxTime) && maxTime >=0 ) ) {
+  if( !( is.numeric(maxTime) && maxTime >= 0 ) ) {
     warning( "The argument maxTime is expected to be a non-negative number.", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
@@ -840,11 +840,13 @@ ListOfParameterNumericVectorsQ <- function(model, obj) {
 #' Batch simulate.
 #' @description Batch simulates over a data frame of parameters.
 #' @param ecmObj An ECMMon object.
-#' @param params A data frame of a list of numberic vectors.
-#' If \code{params} is a list of numeric vectors then \code{params} is expected to have named elemets,
+#' @param params A data frame of a list of numeric vectors.
+#' If \code{params} is a list of numeric vectors then \code{params} is expected to have named elements,
 #' and \code{names(params)} to be known parameter names.
 #' @param maxTime A numerical non-negative value for the maximum simulation time.
-#' @param ... Additional parameters of \code{\link{deSolve::ode}}.
+#' @param ... Additional parameters of \code{\link{ECMMonSimulate}}.
+#' @details If the parameters argument \code{params} is a list of numerical vectors
+#' the batch simulation parameters data frame is generated with \code{\link{expand.grid}}.
 #' @return An ECMMon object.
 #' @family Simulation functions
 #' @export
@@ -867,7 +869,7 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, ... ) {
     return(ECMMonFailureSymbol)
   }
 
-  if( !( is.numeric(maxTime) && maxTime >=0 ) ) {
+  if( !( is.numeric(maxTime) && maxTime >= 0 ) ) {
     warning( "The argument maxTime is expected to be a non-negative number.", call. = TRUE )
     return(ECMMonFailureSymbol)
   }
@@ -883,7 +885,7 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, ... ) {
 
       ecmObj %>%
         ECMMonAssignRateValues( rateValues = par ) %>%
-        ECMMonSimulate( maxTime = maxTime ) %>%
+        ECMMonSimulate( maxTime = maxTime, ... ) %>%
         ECMMonGetSolutionLongForm() %>%
         ECMMonTakeValue
 

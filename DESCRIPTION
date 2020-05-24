@@ -10,6 +10,7 @@ Description: The package provides a software monad that facilitates the rapid cr
     Simulations with those objects are done with the package deSolve.
 License: GPL-3
 Encoding: UTF-8
+Language: en-US
 LazyData: true
 RoxygenNote: 7.1.0
 Collate: 
