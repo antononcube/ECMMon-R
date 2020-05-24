@@ -4,13 +4,15 @@
 \alias{ECMMonAssignInitialConditions}
 \title{Assign initial conditions to model.}
 \usage{
-ECMMonAssignInitialConditions(ecmObj, initConds)
+ECMMonAssignInitialConditions(ecmObj, initConds, unknownStocksWarningQ = TRUE)
 }
 \arguments{
 \item{ecmObj}{An ECMMon object.}
 
 \item{initConds}{A numerical vector with named elements.
 The names are expected to be known stocks in the model.}
+
+\item{unknownStocksWarningQ}{Should warnings for unknown to the model stocks be issued or not?}
 }
 \value{
 An ECMMon object.
@@ -22,6 +24,7 @@ Otherwise the initial conditions are assigned to the single-site model.
 \seealso{
 Other Simulation functions: 
 \code{\link{ECMMonAssignRateValues}()},
+\code{\link{ECMMonBatchSimulate}()},
 \code{\link{ECMMonExtendByAdjacencyMatrix}()},
 \code{\link{ECMMonSimulate}()}
 }

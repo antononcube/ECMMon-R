@@ -63,10 +63,6 @@ model1 <- SEI2RModel(initialConditionsQ = TRUE, rateRulesQ = TRUE)
 ```
 
 ```{r}
-model1 <- ECMMonUnit(model1) %>% ECMMonAssignRateValues( rateValues = c( "contactRateISSP" = 0.5, "contactRateINSP" = 0.5 ) ) %>% ECMMonTakeSingleSiteModel
-```
-
-```{r}
 modelGrid <- ToSiteCompartmentalModel( model = model1, mat = matGridTravel, migratingStocks = ("SPt") ) 
 ```
 
@@ -116,9 +112,10 @@ dfPlotQuery <-
 dfPlotQuery
 ```
 
+
 ```{r}
-ggplot( dfPlotQuery %>% dplyr::filter( Time %/% 5 == Time / 5 ) ) +
-  geom_tile( aes( x = i, y = j, fill = ValueNormalized ) ) +
+ggplot( dfPlotQuery %>% dplyr::filter( Time %/% 20 == Time / 20 ) ) +
+  geom_tile( aes( x = i, y = j, fill = ValueNormalized, color = "gray", width = 0.8, height = 0.8 ) ) +
   scale_fill_distiller(palette = "Spectral") +
   facet_wrap( ~Time )
 ```
@@ -126,9 +123,9 @@ ggplot( dfPlotQuery %>% dplyr::filter( Time %/% 5 == Time / 5 ) ) +
 
 ```{r}
 ggaPlot <- 
-  ggplot( dfPlotQuery %>% dplyr::filter( Time %/% 5 == Time / 5 ) ) +
-  geom_tile( aes( x = i, y = j, fill = ValueNormalized ) ) +
-  scale_fill_distiller(palette = "Spectral") +
+  ggplot2::ggplot( dfPlotQuery %>% dplyr::filter( Time %/% 4 == Time / 4 ) ) +
+  ggplot2::geom_tile( aes( x = i, y = j, fill = ValueNormalized, color = "gray", width = 0.8, height = 0.8 ) ) +
+  ggplot2::scale_fill_distiller(palette = "Spectral") +
   gganimate::transition_time( time = Time )
 ```
 

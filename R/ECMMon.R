@@ -587,7 +587,7 @@ ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE, dataFra
 
           df <- data.frame( "Symbol" = names(model[[x]]), "Value" = model[[x]], stringsAsFactors = FALSE)
 
-        } else if ( x %in% c( "RateRules" ) && is.numeric( model[["RateRules"]] ) ) {
+        } else if ( x %in% c( "RateRules", "RateValues" ) && is.numeric( model[["RateRules"]] ) ) {
 
           df <- data.frame( "Symbol" = names(model[[x]]), "Value" = model[[x]], stringsAsFactors = FALSE)
 
@@ -648,12 +648,17 @@ ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE, dataFra
 #' @param ecmObj An ECMMon object.
 #' @param initConds A numerical vector with named elements.
 #' The names are expected to be known stocks in the model.
+#' @param unknownStocksWarningQ Should warnings for unknown to the model stocks be issued or not?
 #' @return An ECMMon object.
 #' @family Simulation functions
 #' @export
-ECMMonAssignInitialConditions <- function( ecmObj, initConds ) {
+ECMMonAssignInitialConditions <- function( ecmObj, initConds, unknownStocksWarningQ = TRUE ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  if( is.list(initConds) ) {
+    initConds <- setNames( as.numeric(initConds), names(initConds) )
+  }
 
   if( !( is.numeric(initConds) && is.character(names(initConds)) ) ) {
     warning( "The argument initConds is expected to be a numerical vector with named elements.", call. = TRUE )
@@ -664,12 +669,28 @@ ECMMonAssignInitialConditions <- function( ecmObj, initConds ) {
 
   if( ECMMonFailureQ(model) ) {return(ECMMonFailureSymbol) }
 
-  if( mean( names(initConds) %in% names(model$InitialConditions) ) < 1 ) {
-    warning( "Some of the names of initConds are not known stocks.", call. = TRUE )
-    return(ECMMonFailureSymbol)
+  frKnown <- mean(names(initConds) %in% names(model$InitialConditions))
+  frKnown <- if( is.na(frKnown) ) { 0 } else { frKnown }
+
+  if( 0 < frKnown && frKnown < 1 ) {
+
+    if( unknownStocksWarningQ ) {
+      warning( "Some of the names of initConds are not known stocks.", call. = TRUE )
+    }
+
+  } else if( frKnown == 0 ) {
+
+    if( unknownStocksWarningQ ) {
+      warning( "None of the names of initConds are known stocks.", call. = TRUE )
+    }
+
+    return(ecmObj)
   }
 
+
+  initConds <- initConds[ names(initConds) %in% names(model$InitialConditions) ]
   model$InitialConditions[ names(initConds) ] <- initConds
+
 
   if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignInitialConditions",  logicalResult = TRUE, warningQ = FALSE) ) {
     ecmObj$MultiSiteModel <- model
@@ -691,10 +712,11 @@ ECMMonAssignInitialConditions <- function( ecmObj, initConds ) {
 #' @param ecmObj An ECMMon object.
 #' @param rateValues A numerical vector with named elements.
 #' The names are expected to be known stocks in the model.
+#' @param unknownRatesWarningQ Should warnings for unknown to the model rates be issued or not?
 #' @return An ECMMon object.
 #' @family Simulation functions
 #' @export
-ECMMonAssignRateValues <- function( ecmObj, rateValues ) {
+ECMMonAssignRateValues <- function( ecmObj, rateValues, unknownRatesWarningQ = TRUE ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -707,18 +729,25 @@ ECMMonAssignRateValues <- function( ecmObj, rateValues ) {
 
   if( ECMMonFailureQ(model) ) { return(ECMMonFailureSymbol) }
 
-  frKnown = mean( names(rateValues) %in% names(model$RateRules) )
+  frKnown <- mean(names(rateValues) %in% names(model$RateRules))
+  frKnown <- if( is.na(frKnown) ) { 0 } else { frKnown }
 
   if( 0 < frKnown && frKnown < 1 ) {
 
-    warning( "Some of the names of rateValues are not known rates.", call. = TRUE )
+    if( unknownRatesWarningQ ) {
+      warning( "Some of the names of rateValues are not known rates.", call. = TRUE )
+    }
 
   } else if( frKnown == 0 ) {
 
-    warning( "None of the names of rateValues are known rates.", call. = TRUE )
+    if( unknownRatesWarningQ ) {
+      warning( "None of the names of rateValues are known rates.", call. = TRUE )
+    }
 
+    return(ecmObj)
   }
 
+  rateValues <- rateValues[ names(rateValues) %in% names(model$RateRules) ]
   model$RateRules[ names(rateValues) ] <- rateValues
 
   # Not needed.
@@ -823,6 +852,7 @@ ECMMonSimulate <- function( ecmObj, maxTime, ... ) {
 ListOfRateValueNumericVectorsQ <- function(model, obj) {
 
   is.list(obj) &&
+    !is.data.frame(obj) &&
     mean( names(obj) %in% names(model$Rates) ) == 1 &&
     mean( purrr::map_lgl( obj, function(x) is.numeric(x) ) ) == 1
 
@@ -831,6 +861,7 @@ ListOfRateValueNumericVectorsQ <- function(model, obj) {
 ListOfParameterNumericVectorsQ <- function(model, obj) {
 
   is.list(obj) &&
+    !is.data.frame(obj) &&
     mean( ( names(obj) %in% names(model$Stocks) ) | ( names(obj) %in% names(model$Rates) ) ) == 1 &&
     mean( purrr::map_lgl( obj, function(x) is.numeric(x) ) ) == 1
 
@@ -856,13 +887,15 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, ... ) {
 
   model <- ecmObj %>% ECMMonGetDefaultModel %>% ECMMonTakeValue
 
-  if( !( is.data.frame(params) || ListOfRateValueNumericVectorsQ(model, params) ) ) {
+  if( !( is.data.frame(params) || ListOfParameterNumericVectorsQ(model, params) ) ) {
 
     warning(
       paste0(
         "The argument params is expected to be a data frame or a list of numerical vectors with names that are model rates: '",
         paste0( names(model$Rates), collapse = "', '" ),
-        "'."
+        "', or models stocks: '",
+        paste0( names(model$Stocks), collapse = "', '" ),
+        "' ."
       ),
       call. = TRUE )
 
@@ -874,17 +907,21 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, ... ) {
     return(ECMMonFailureSymbol)
   }
 
-  if( ListOfRateValueNumericVectorsQ(model, params) ){
+  if( ListOfParameterNumericVectorsQ(model, params) ){
 
     params <- do.call( expand.grid, params )
 
   }
 
+  lsParams <- split( params, seq(nrow(params)) )
+  lsParams <- setNames( lsParams, purrr::map_chr( lsParams, function(x) paste(x, collapse = "_")))
+
   lsRes <-
-    purrr::map( split(params, params, sep = "_"), function(par) {
+    purrr::map( lsParams, function(par) {
 
       ecmObj %>%
-        ECMMonAssignRateValues( rateValues = par ) %>%
+        ECMMonAssignRateValues( rateValues = par, unknownRatesWarningQ = FALSE ) %>%
+        ECMMonAssignInitialConditions( initConds = par, unknownStocksWarningQ = FALSE ) %>%
         ECMMonSimulate( maxTime = maxTime, ... ) %>%
         ECMMonGetSolutionLongForm() %>%
         ECMMonTakeValue

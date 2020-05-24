@@ -4,13 +4,15 @@
 \alias{ECMMonAssignRateValues}
 \title{Assign rate rules to model.}
 \usage{
-ECMMonAssignRateValues(ecmObj, rateValues)
+ECMMonAssignRateValues(ecmObj, rateValues, unknownRatesWarningQ = TRUE)
 }
 \arguments{
 \item{ecmObj}{An ECMMon object.}
 
 \item{rateValues}{A numerical vector with named elements.
 The names are expected to be known stocks in the model.}
+
+\item{unknownRatesWarningQ}{Should warnings for unknown to the model rates be issued or not?}
 }
 \value{
 An ECMMon object.
@@ -22,6 +24,7 @@ Otherwise the rate values are assigned to the single-site model.
 \seealso{
 Other Simulation functions: 
 \code{\link{ECMMonAssignInitialConditions}()},
+\code{\link{ECMMonBatchSimulate}()},
 \code{\link{ECMMonExtendByAdjacencyMatrix}()},
 \code{\link{ECMMonSimulate}()}
 }
