@@ -1,0 +1,72 @@
+---
+title: "Batch simulation"
+author: Anton Antonov
+date: 2020-05-24
+output: html_notebook
+---
+
+```{r}
+library(ECMMon)
+library(magrittr)
+library(ggplot2)
+```
+
+# Introduction
+
+Illustrate the batch simulation abilities of ECMMon.
+
+# Basic pipeline
+
+Here is the (single-site) model and a base simulation pipeline with it:
+
+```{r}
+ecmObj <- 
+  ECMMonUnit( SEI2RModel(initialConditionsQ = TRUE, rateRulesQ = TRUE) ) %>% 
+  ECMMonSimulate( maxTime = 365 ) %>% 
+  ECMMonPlotSolutions( stocksSpec = ".Population" )
+```
+
+# Batch simulation
+
+See the model rates:
+
+```{r}
+model1 <- 
+  ecmObj %>% 
+  ECMMonGetDefaultModel %>% 
+  ECMMonTakeValue
+model1$Rates
+```
+
+Batch simulation:
+
+```{r}
+system.time(
+  lsRes <- 
+    ecmObj %>% 
+    ECMMonBatchSimulate( params = list( "aip" = seq(20, 40, 20), "aincp" = seq(6, 12, 6), "sspf" = c(0.2, 0.4), "lpcr" = 0 ), maxTime = 365 )%>% 
+    ECMMonTakeValue
+)
+```
+
+Combine the results into a data frame:
+
+```{r}
+dfRes <- dplyr::bind_rows(lsRes, .id = "Parameters" )
+```
+
+Plot results:
+
+```{r}
+ggplot( dfRes ) +
+  geom_line( aes( x = Time, y = Value, color = Stock ) ) +
+  facet_wrap( ~Parameters, ncol = 2 )
+```
+
+Sensitivity analysis: 
+
+```{r}
+ggplot( dfRes %>% dplyr::filter( Stock == "ISSPt" ) ) +
+  geom_line( aes( x = Time, y = Value, color = Parameters ) ) 
+```
+

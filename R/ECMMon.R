@@ -815,6 +815,86 @@ ECMMonSimulate <- function( ecmObj, maxTime, ... ) {
 }
 
 
+
+##===========================================================
+## BatchSimulate
+##===========================================================
+
+ListOfRateValueNumericVectorsQ <- function(model, obj) {
+
+  is.list(obj) &&
+    mean( names(obj) %in% names(model$Rates) ) == 1 &&
+    mean( purrr::map_lgl( obj, function(x) is.numeric(x) ) ) == 1
+
+}
+
+ListOfParameterNumericVectorsQ <- function(model, obj) {
+
+  is.list(obj) &&
+    mean( ( names(obj) %in% names(model$Stocks) ) | ( names(obj) %in% names(model$Rates) ) ) == 1 &&
+    mean( purrr::map_lgl( obj, function(x) is.numeric(x) ) ) == 1
+
+}
+
+
+#' Batch simulate.
+#' @description Batch simulates over a data frame of parameters.
+#' @param ecmObj An ECMMon object.
+#' @param params A data frame of a list of numberic vectors.
+#' If \code{params} is a list of numeric vectors then \code{params} is expected to have named elemets,
+#' and \code{names(params)} to be known parameter names.
+#' @param maxTime A numerical non-negative value for the maximum simulation time.
+#' @param ... Additional parameters of \code{\link{deSolve::ode}}.
+#' @return An ECMMon object.
+#' @family Simulation functions
+#' @export
+ECMMonBatchSimulate <- function( ecmObj, params, maxTime, ... ) {
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  model <- ecmObj %>% ECMMonGetDefaultModel %>% ECMMonTakeValue
+
+  if( !( is.data.frame(params) || ListOfRateValueNumericVectorsQ(model, params) ) ) {
+
+    warning(
+      paste0(
+        "The argument params is expected to be a data frame or a list of numerical vectors with names that are model rates: '",
+        paste0( names(model$Rates), collapse = "', '" ),
+        "'."
+      ),
+      call. = TRUE )
+
+    return(ECMMonFailureSymbol)
+  }
+
+  if( !( is.numeric(maxTime) && maxTime >=0 ) ) {
+    warning( "The argument maxTime is expected to be a non-negative number.", call. = TRUE )
+    return(ECMMonFailureSymbol)
+  }
+
+  if( ListOfRateValueNumericVectorsQ(model, params) ){
+
+    params <- do.call( expand.grid, params )
+
+  }
+
+  lsRes <-
+    purrr::map( split(params, params, sep = "_"), function(par) {
+
+      ecmObj %>%
+        ECMMonAssignRateValues( rateValues = par ) %>%
+        ECMMonSimulate( maxTime = maxTime ) %>%
+        ECMMonGetSolutionLongForm() %>%
+        ECMMonTakeValue
+
+    } )
+
+  ecmObj$Value <- lsRes
+
+  ecmObj
+}
+
+
 ##===========================================================
 ## PlotSolutions
 ##===========================================================
