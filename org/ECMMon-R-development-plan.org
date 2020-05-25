@@ -56,7 +56,10 @@
 - [X] Export form for ~ERTMon~
 *** TODO [#B] Sensitivity Analysis
 - Further facilitation of Sensitivity analysis.
-*** TODO [#A] Plot Sensitivity Analysis Solutions
+*** TODO [#B] Plot Sensitivity Analysis Solutions
+- "Easy" to do using:
+  - ~ggplot2~ with the simple result form (a list of data frames)
+  - ~ERTMon~ with the export result form (a list of ~ERTMon~ data frames)
 ** TODO Multi-site model [100%] [2/2]
 *** DONE Core multi-site model making 
 - [X] Extract model equations
