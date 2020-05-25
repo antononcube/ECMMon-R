@@ -1,0 +1,72 @@
+---
+title: "Batch simulation examples with ERTMon"
+author: Anton Antonov
+date: 2020-05-25
+output: html_notebook
+---
+
+```{r}
+library(ECMMon)
+library(ERTMon)
+library(magrittr)
+library(ggplot2)
+```
+
+# Introduction
+
+Illustrate the batch simulation abilities of ECMMon.
+
+# Basic pipeline
+
+Here is the (single-site) model and a base simulation pipeline with it:
+
+```{r}
+ecmObj <- 
+  ECMMonUnit( SEI2HRModel(initialConditionsQ = TRUE, rateRulesQ = TRUE) ) %>% 
+  ECMMonSimulate( maxTime = 365 ) %>% 
+  ECMMonPlotSolutions( stocksSpec = ".Population" )
+```
+
+
+# Using ERTMon
+
+```{r}
+lsRes <- 
+  ecmObj %>% 
+  ECMMonBatchSimulate( params = dfParameters, maxTime = 365, resultForm = "export" )  %>% 
+  ECMMonTakeValue
+```
+
+```{r}
+names(lsRes)
+```
+
+```{r}
+lsRes[[1]]
+```
+
+
+```{r}
+lsVars <- unique(lsRes$EventRecords$Variable) 
+dfCompSpec <- ERTMonEmptyComputationSpecification( nrow = length(lsVars) )
+dfCompSpec$Variable <- lsVars
+dfCompSpec$Aggregation.interval.length <- 1
+dfCompSpec$Max.history.length <- 365
+dfCompSpec$Normalization.function <- "None"
+dfCompSpec$Normalization.scope <- "None"
+dfCompSpec
+```
+
+```{r}
+ertObj <- 
+  ERTMonUnit( eventRecords = lsRes$EventRecords, entityAttributes = lsRes$EntityAttributes, compSpec = dfCompSpec ) %>% 
+  ERTMonProcessEventRecords( alignmentSpec = "MinTime" )
+```
+
+
+```{r}
+ertObj2 <- 
+  ertObj %>% 
+  ERTMonPlotFeatureMatrices( matrixNames = c( "ISSPt.Mean", "INSPt.Mean"), facets = "EntityID", scales = "free" )
+```
+

@@ -1,0 +1,162 @@
+---
+title: "Batch simulation example"
+author: Anton Antonov
+date: 2020-05-24
+output: html_notebook
+---
+
+```{r}
+library(ECMMon)
+library(magrittr)
+library(ggplot2)
+```
+
+# Introduction
+
+Illustrate the batch simulation abilities of ECMMon.
+
+# Basic pipeline
+
+Here is the (single-site) model and a base simulation pipeline with it:
+
+```{r}
+ecmObj <- 
+  ECMMonUnit( SEI2HRModel(initialConditionsQ = TRUE, rateRulesQ = TRUE) ) %>% 
+  ECMMonSimulate( maxTime = 365 ) %>% 
+  ECMMonPlotSolutions( stocksSpec = ".Population" )
+```
+
+# Batch simulation
+
+## Different rates
+
+See the model rates:
+
+```{r}
+ecmObj <- 
+  ecmObj %>% 
+  ECMMonEchoModelTableForm( part = "RateRules" )
+```
+
+Batch simulation:
+
+
+```{r}
+dfParams <- do.call( expand.grid, list( "aip" = seq(20, 40, 5), "aincp" = seq(6, 18, 6), "lpcr" = 0 ) )
+dfParams
+```
+
+
+```{r}
+system.time(
+  dfRes <- 
+    ecmObj %>% 
+    ECMMonBatchSimulate( params = list( "aip" = seq(20, 40, 10), "aincp" = seq(6, 18, 6), "lpcr" = 0 ), maxTime = 365, resultForm = NULL )%>% 
+    ECMMonTakeValue
+)
+```
+
+```{r}
+dfRes
+```
+
+Plot results:
+
+```{r}
+ggplot( dfRes ) +
+  geom_line( aes( x = Time, y = Value, color = Stock ) ) +
+  facet_wrap( ~ aip + aincp, ncol = 3 )
+```
+
+Sensitivity analysis: 
+
+```{r}
+ggplot( dfRes %>% dplyr::filter( Stock == "ISSPt" ) ) +
+  geom_line( aes( x = Time, y = Value, color = factor(aip) ) ) +
+  facet_wrap( ~ aincp, ncol = 1 ) 
+```
+
+## Different initial conditions
+
+Here are the model stocks:
+
+```{r}
+(ecmObj %>% ECMMonTakeSingleSiteModel)$Stocks
+```
+
+```{r}
+ecmObj <- 
+  ecmObj %>% 
+  ECMMonEchoModelTableForm( "Stocks" )
+```
+
+Here are the initial conditions:
+
+```{r}
+ecmObj <- 
+  ecmObj %>% 
+  ECMMonEchoModelTableForm( "InitialConditions" )
+```
+
+Here is the parameters data frame for different initial conditions:
+
+```{r}
+dfParameters <- do.call( expand.grid, list( "TP0" = seq(2, 3, 1) * 10^5, "ISSPt" = 10 ^ seq(0, 2, 1) ) )
+dfParameters <- cbind( dfParameters, "SPt" = dfParameters$TP0 - dfParameters$ISSPt,  "lpcr" = 0  )
+dfParameters
+```
+
+Note that we added the column "SPt" in order to have consisten initial conditions.
+
+Batch simulation:
+
+```{r}
+dfRes <- 
+  ecmObj %>% 
+  ECMMonBatchSimulate( params = dfParameters, maxTime = 365 )%>% 
+  ECMMonTakeValue
+```
+
+```{r}
+dfRes
+```
+
+Plot results:
+
+
+```{r}
+ggplot( dfRes ) +
+  geom_line( aes( x = Time, y = Value, color = Stock ) ) +
+  facet_wrap( ~ TP0 + ISSPt, labeller = "label_both", ncol = 3, scales = "free" )
+```
+
+Sensitivity analysis:
+
+```{r}
+ggplot( dfRes %>% dplyr::filter( Stock == "ISSPt" ) ) +
+  geom_line( aes( x = Time, y = Value, color = interaction( TP0, ISSPt ) ) )
+```
+
+# Using parametric functions
+
+***This approach does not work.***
+
+```{r, eval=FALSE }
+ql <- 21
+lsFuncs <- 
+  purrr::map( seq(10, 120, 5), function(qsd) { 
+    function(t) { 0.56 * ifelse( qsd <= t && t <= qsd + ql, 0.25, 1 ) } 
+  })
+```
+
+
+```{r, eval=FALSE}
+ecmObj2 <- 
+  ECMMonUnit( SEI2HRModel( initialConditionsQ = TRUE, rateRulesQ = TRUE ) ) %>% 
+  ECMMonBatchSimulate( params = list( "contactRateINSP" = lsFuncs ) , maxTime = 365 )%>% 
+  ECMMonTakeValue
+```
+
+
+
+
