@@ -484,7 +484,7 @@ ECMMonGetDefaultModel <- function( ecmObj, functionName = "ECMMonGetDefaultModel
 
 
 ##===========================================================
-## GetSolutionLongForm
+## ECMMonGetSolutionLongForm
 ##===========================================================
 
 #' Get long form solution.
@@ -876,7 +876,7 @@ ListOfParameterNumericVectorsQ <- function(model, obj) {
 #' and \code{names(params)} to be known parameter names.
 #' @param maxTime A numerical non-negative value for the maximum simulation time.
 #' @param resultForm A string or NULL.
-#' If a string it is expected to be one of "simple" or "export".
+#' If a string it is expected to be one of "list", "simple", or "export".
 #' NULL is the same as "simple".
 #' @param ... Additional parameters of \code{\link{ECMMonSimulate}}.
 #' @details If the parameters argument \code{params} is a list of numerical vectors
@@ -910,6 +910,8 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, resultForm = "simple",
     return(ECMMonFailureSymbol)
   }
 
+  if( is.null(resultForm) ) { resultForm <- "simple" }
+
   ## Reshape parameters data structure
   if( ListOfParameterNumericVectorsQ(model, params) ){
 
@@ -923,21 +925,29 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, resultForm = "simple",
 
   ## Batch simulations
   lsRes <-
-    purrr::map( lsParams, function(par) {
+    purrr::map( lsParams, function(dfX) {
 
-      ecmObj %>%
-        ECMMonAssignRateValues( rateValues = par, unknownRatesWarningQ = FALSE ) %>%
-        ECMMonAssignInitialConditions( initConds = par, unknownStocksWarningQ = FALSE ) %>%
+      lsPar <- as.list( dfX[1,] )
+
+      dfLocalRes <-
+        ecmObj %>%
+        ECMMonAssignRateValues( rateValues = lsPar, unknownRatesWarningQ = FALSE ) %>%
+        ECMMonAssignInitialConditions( initConds = lsPar, unknownStocksWarningQ = FALSE ) %>%
         ECMMonSimulate( maxTime = maxTime, ... ) %>%
         ECMMonGetSolutionLongForm() %>%
         ECMMonTakeValue
 
+      cbind( dfX[1,], dfLocalRes, row.names = NULL )
     } )
 
   ## Result
-  if( tolower(resultForm) == "simple" ) {
+  if( tolower(resultForm) == "list" ) {
 
     ecmObj$Value <- lsRes
+
+  } else if( tolower(resultForm) %in% c( "simple", "longform" ) ) {
+
+    ecmObj$Value <- dplyr::bind_rows( lsRes )
 
   } else if( tolower(resultForm) %in% c( "export", "ertmon" ) ) {
 
@@ -963,6 +973,17 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, resultForm = "simple",
     dfVariables <- data.frame( Variable = c( names(model$Stocks), names(model$Rates) ), Description = c( model$Stocks, model$Rates ), Unit = "", stringsAsFactors = FALSE )
 
     ecmObj$Value <- list( EntityAttributes = dfEntityAttributes, EventRecords = dfEventRecords, Variables = dfVariables )
+
+  } else {
+
+    warning(
+      paste(
+        "The value of the argument resultForm is expected to be NULL or one of: 'list', 'simple', or 'export'.",
+        "Continuing with 'simple'."
+      ),
+      call. = TRUE )
+
+    ecmObj$Value <- dplyr::bind_rows( lsRes )
 
   }
 
