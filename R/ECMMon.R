@@ -875,13 +875,16 @@ ListOfParameterNumericVectorsQ <- function(model, obj) {
 #' If \code{params} is a list of numeric vectors then \code{params} is expected to have named elements,
 #' and \code{names(params)} to be known parameter names.
 #' @param maxTime A numerical non-negative value for the maximum simulation time.
+#' @param resultForm A string or NULL.
+#' If a string it is expected to be one of "simple" or "export".
+#' NULL is the same as "simple".
 #' @param ... Additional parameters of \code{\link{ECMMonSimulate}}.
 #' @details If the parameters argument \code{params} is a list of numerical vectors
 #' the batch simulation parameters data frame is generated with \code{\link{expand.grid}}.
 #' @return An ECMMon object.
 #' @family Simulation functions
 #' @export
-ECMMonBatchSimulate <- function( ecmObj, params, maxTime, ... ) {
+ECMMonBatchSimulate <- function( ecmObj, params, maxTime, resultForm = "simple", ... ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -907,6 +910,7 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, ... ) {
     return(ECMMonFailureSymbol)
   }
 
+  ## Reshape parameters data structure
   if( ListOfParameterNumericVectorsQ(model, params) ){
 
     params <- do.call( expand.grid, params )
@@ -914,8 +918,10 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, ... ) {
   }
 
   lsParams <- split( params, seq(nrow(params)) )
-  lsParams <- setNames( lsParams, purrr::map_chr( lsParams, function(x) paste(x, collapse = "_")))
+  lsParamsNames <- purrr::map_chr( lsParams, function(x) paste(x, collapse = "_") )
+  lsParams <- setNames( lsParams, lsParamsNames )
 
+  ## Batch simulations
   lsRes <-
     purrr::map( lsParams, function(par) {
 
@@ -928,7 +934,37 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, ... ) {
 
     } )
 
-  ecmObj$Value <- lsRes
+  ## Result
+  if( tolower(resultForm) == "simple" ) {
+
+    ecmObj$Value <- lsRes
+
+  } else if( tolower(resultForm) %in% c( "export", "ertmon" ) ) {
+
+    dfEntityAttributes <-
+      purrr::map_df( names(lsParams), function(x) {
+
+        data.frame( EntityID = x,
+                    Attribute = names(lsParams[[x]]),
+                    Value = as.numeric( lsParams[[x]] ),
+                    stringsAsFactors = FALSE )
+
+      })
+
+    dfEventRecords <- dplyr::bind_rows( lsRes, .id = "EntityID" )
+
+    dfEventRecords <-
+      dfEventRecords %>%
+      dplyr::mutate( ObservationTime = Time, Variable = Stock, LocationID = SiteID ) %>%
+      dplyr::select( EntityID, LocationID, ObservationTime, Variable, Value )
+
+    ## dfEventRecords <- setNames( dfEventRecords, c( "EntityID", "LocationID", "ObservationTime", "Variable", "Value" ) )
+
+    dfVariables <- data.frame( Variable = c( names(model$Stocks), names(model$Rates) ), Description = c( model$Stocks, model$Rates ), Unit = "", stringsAsFactors = FALSE )
+
+    ecmObj$Value <- list( EntityAttributes = dfEntityAttributes, EventRecords = dfEventRecords, Variables = dfVariables )
+
+  }
 
   ecmObj
 }

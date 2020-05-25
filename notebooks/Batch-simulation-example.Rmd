@@ -7,6 +7,8 @@ output: html_notebook
 
 ```{r}
 library(ECMMon)
+library(ERTMon)
+#devtools::load_all()
 library(magrittr)
 library(ggplot2)
 ```
@@ -28,14 +30,14 @@ ecmObj <-
 
 # Batch simulation
 
+## Different rates
+
 See the model rates:
 
 ```{r}
-model1 <- 
+ecmObj <- 
   ecmObj %>% 
-  ECMMonGetDefaultModel %>% 
-  ECMMonTakeValue
-model1$Rates
+  ECMMonEchoModelTableForm( part = "RateRules" )
 ```
 
 Batch simulation:
@@ -44,7 +46,7 @@ Batch simulation:
 system.time(
   lsRes <- 
     ecmObj %>% 
-    ECMMonBatchSimulate( params = list( "aip" = seq(20, 40, 20), "aincp" = seq(6, 12, 6), "sspf" = c(0.2, 0.4), "lpcr" = 0 ), maxTime = 365 )%>% 
+    ECMMonBatchSimulate( params = list( "aip" = seq(20, 40, 20), "aincp" = seq(6, 12, 6), "lpcr" = 0 ), maxTime = 365 )%>% 
     ECMMonTakeValue
 )
 ```
@@ -68,5 +70,101 @@ Sensitivity analysis:
 ```{r}
 ggplot( dfRes %>% dplyr::filter( Stock == "ISSPt" ) ) +
   geom_line( aes( x = Time, y = Value, color = Parameters ) ) 
+```
+
+## Different initial conditions
+
+Here are the model stocks:
+```{r}
+(ecmObj %>% ECMMonTakeSingleSiteModel)$Stocks
+```
+
+```{r}
+ecmObj <- 
+  ecmObj %>% 
+  ECMMonEchoModelTableForm( "Stocks" )
+```
+
+Here are the initial conditions:
+
+```{r}
+ecmObj <- 
+  ecmObj %>% 
+  ECMMonEchoModelTableForm( "InitialConditions" )
+```
+
+Parameters:
+
+```{r}
+dfParameters <- do.call( expand.grid, list( "TP0" = seq(1, 3, 1) * 10^5, "ISSPt" = 10 ^ seq(0, 2, 1) ) )
+dfParameters <- cbind( dfParameters, "SPt" = dfParameters$TP0 - dfParameters$ISSPt,  "lpcr" = 0  )
+dfParameters
+```
+
+Batch simulation:
+
+```{r}
+lsRes <- 
+  ecmObj %>% 
+  ECMMonBatchSimulate( params = dfParameters, maxTime = 365 )%>% 
+  ECMMonTakeValue
+```
+
+Combine the results into a data frame:
+
+```{r}
+dfRes <- dplyr::bind_rows(lsRes, .id = "Parameters" )
+```
+
+```{r}
+dfRes
+```
+
+Plot results:
+
+```{r}
+ggplot( dfRes ) +
+  geom_line( aes( x = Time, y = Value, color = Stock ) ) +
+  facet_wrap( ~Parameters, ncol = 3, scales = "free" )
+```
+
+Sensitivity analysis:
+
+```{r}
+ggplot( dfRes %>% dplyr::filter( Stock == "ISSPt" ) ) +
+  geom_line( aes( x = Time, y = Value, color = Parameters ) ) 
+```
+
+# Using ERTMon
+
+```{r}
+lsRes <- 
+  ecmObj %>% 
+  ECMMonBatchSimulate( params = dfParameters, maxTime = 365, resultForm = "ERTMon" )%>% 
+  ECMMonTakeValue
+```
+
+
+```{r}
+lsVars <- unique(lsRes$EventRecords$Variable) 
+dfCompSpec <- ERTMonEmptyComputationSpecification( nrow = length(lsVars) )
+dfCompSpec$Variable <- lsVars
+dfCompSpec$Aggregation.interval.length <- 1
+dfCompSpec$Max.history.length <- 365
+dfCompSpec$Normalization.function <- "None"
+dfCompSpec$Normalization.scope <- "None"
+dfCompSpec
+```
+
+```{r}
+ertObj <- 
+  ERTMonUnit( eventRecords = lsRes$EventRecords, entityAttributes = lsRes$EntityAttributes, compSpec = dfCompSpec ) %>% 
+  ERTMonProcessEventRecords( alignmentSpec = "MinTime" )
+```
+
+```{r}
+ertObj2 <- 
+  ertObj %>% 
+  ERTMonPlotFeatureMatrices( matrixNames = "ISSPt.Mean", facets = "EntityID", scales = "fixed" )
 ```
 

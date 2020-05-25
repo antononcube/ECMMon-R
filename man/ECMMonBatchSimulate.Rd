@@ -4,7 +4,7 @@
 \alias{ECMMonBatchSimulate}
 \title{Batch simulate.}
 \usage{
-ECMMonBatchSimulate(ecmObj, params, maxTime, ...)
+ECMMonBatchSimulate(ecmObj, params, maxTime, resultForm = "simple", ...)
 }
 \arguments{
 \item{ecmObj}{An ECMMon object.}
@@ -14,6 +14,10 @@ If \code{params} is a list of numeric vectors then \code{params} is expected to 
 and \code{names(params)} to be known parameter names.}
 
 \item{maxTime}{A numerical non-negative value for the maximum simulation time.}
+
+\item{resultForm}{A string or NULL.
+If a string it is expected to be one of "simple" or "export".
+NULL is the same as "simple".}
 
 \item{...}{Additional parameters of \code{\link{ECMMonSimulate}}.}
 }
