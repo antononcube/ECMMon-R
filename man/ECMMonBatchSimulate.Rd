@@ -16,8 +16,8 @@ and \code{names(params)} to be known parameter names.}
 \item{maxTime}{A numerical non-negative value for the maximum simulation time.}
 
 \item{resultForm}{A string or NULL.
-If a string it is expected to be one of "list", "simple", or "export".
-NULL is the same as "simple".}
+If a string it is expected to be one of "List", "Simple", or "StarSchema".
+NULL is the same as "Simple".}
 
 \item{...}{Additional parameters of \code{\link{ECMMonSimulate}}.}
 }

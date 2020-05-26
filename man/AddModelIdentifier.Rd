@@ -2,7 +2,7 @@
 % Please edit documentation in R/EpidemiologyModelModifications.R
 \name{AddModelIdentifier}
 \alias{AddModelIdentifier}
-\title{A model object check.}
+\title{Add a model identifier.}
 \usage{
 AddModelIdentifier(
   model,
@@ -32,6 +32,7 @@ The original model object has \code{birthTermsQ} in the closure of \code{model$R
 }
 \seealso{
 Other Epidemiology Model Modifier functions: 
+\code{\link{AddModelRates}()},
 \code{\link{JoinModels}()},
 \code{\link{MakeMigrationEquations}()},
 \code{\link{TakeRHSFunctionBodyLines}()},

@@ -165,10 +165,65 @@ GetLeftHandSides <- function( definitionLines ) {
 
 
 ##===========================================================
+## Add model rates
+##===========================================================
+
+#' Add model rates.
+#' @description Adds rates to model object.
+#' @param model A model object.
+#' @param rateDescriptions A character vector with named elements.
+#' @param rateValues A numerical vector with named elements.
+#' @param replaceExistingRatesQ Should existing rates be replaced or not?
+#' @return A model.
+#' @details This function is useful when working with rate functions.
+#' If a rate in the model object is changed to be a function (instead of number)
+#' then in order to do batch simulations it is convenient to have the parameters
+#' of that function as rates in the model object.
+#' @family Epidemiology Model Modifier functions
+#' @export
+AddModelRates <- function( model, rateDescriptions, rateValues, replaceExistingRatesQ = TRUE ) {
+
+  if( !EpidemiologyFullModelQ(model) ) {
+    stop( "The argument model is expected to be an epidemiology model object.", call. = TRUE )
+  }
+
+  if( !( is.character(rateDescriptions) && !is.null(rateDescriptions) ) ) {
+    stop( "The argument rateDescriptions is expected to be a character vector with named elements", call. = TRUE )
+  }
+
+  if( !( is.numeric(rateValues) && !is.null(rateValues) ) ) {
+    stop( "The argument rateValues is expected to be a numerical vector with named elements", call. = TRUE )
+  }
+
+  if( ! ( length(rateDescriptions) == length(rateValues) &&
+          mean( sort(names(rateDescriptions)) == sort(names(rateValues)) ) == 1 ) ) {
+    stop( "The arguments rateDescriptions and rateValues are expected to be of same length and have same element names.", call. = TRUE )
+  }
+
+  rateValues <- rateValues[ names(rateDescriptions) ]
+
+  if( replaceExistingRatesQ ) {
+
+    model$Rates <- c( model$Rates[ setdiff(names(model$Rates), names(rateDescriptions)) ], rateDescriptions )
+    model$RateRules <- c( model$RateRules[ setdiff(names(model$RateRules), names(rateValues)) ], rateValues )
+
+  } else {
+
+    model$Rates <- c( model$Rates, rateDescriptions[ setdiff( names(rateDescriptions), names(model$Rates) ) ] )
+    model$RateRules <- c( model$RateRules, rateValues[ setdiff( names(rateValues), names(model$RateRules) ) ] )
+
+  }
+
+  ## Result
+  model
+}
+
+
+##===========================================================
 ## AddModelIdentifier
 ##===========================================================
 
-#' A model object check.
+#' Add a model identifier.
 #' @description Adds a specified identifier id to all stocks and rates on the model m.
 #' @param model A model object.
 #' @param id A number or string to used as ID.
@@ -239,7 +294,7 @@ AddModelIdentifier <- function( model, id, addToOtherLeftHandSidesQ = TRUE, birt
   newModel$RateRules <- setNames( newModel$RateRules, aNewRates[ names(newModel$RateRules) ] )
 
 
-  ## Apply mapping rules to deparsed RHS definition
+  ## Apply mapping rules to the de-parsed RHS definition
   lsRHSdefinition <- Reduce( function( txt, i ) { gsub( paste0( "\\b", names(aNewStocks)[[i]], "\\b" ), aNewStocks[[i]], txt ) }, init = lsRHSdefinition, x = 1:length(aNewStocks) )
 
   lsRHSdefinition <- Reduce( function( txt, i ) { gsub( paste0( "\\b", names(aNewStocksD)[[i]], "\\b" ), aNewStocksD[[i]], txt ) }, init = lsRHSdefinition, x = 1:length(aNewStocksD) )

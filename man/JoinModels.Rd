@@ -21,6 +21,7 @@ of arguments joined.
 \seealso{
 Other Epidemiology Model Modifier functions: 
 \code{\link{AddModelIdentifier}()},
+\code{\link{AddModelRates}()},
 \code{\link{MakeMigrationEquations}()},
 \code{\link{TakeRHSFunctionBodyLines}()},
 \code{\link{ToSiteCompartmentalModel}()}

@@ -29,6 +29,7 @@ Makes the migration (supplemental) equations with the specified matrix and stock
 \seealso{
 Other Epidemiology Model Modifier functions: 
 \code{\link{AddModelIdentifier}()},
+\code{\link{AddModelRates}()},
 \code{\link{JoinModels}()},
 \code{\link{TakeRHSFunctionBodyLines}()},
 \code{\link{ToSiteCompartmentalModel}()}
