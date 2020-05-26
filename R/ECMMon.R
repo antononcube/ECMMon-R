@@ -591,7 +591,7 @@ ECMMonEchoModelTableForm <- function( ecmObj, part = NULL, echoQ = TRUE, dataFra
 
           df <- data.frame( "Symbol" = names(model[[x]]), "Value" = model[[x]], stringsAsFactors = FALSE)
 
-        } else {
+        } else if( x %in% c( "RHSFunction" ) ) {
 
           df <- model[[x]]
 
@@ -876,8 +876,8 @@ ListOfParameterNumericVectorsQ <- function(model, obj) {
 #' and \code{names(params)} to be known parameter names.
 #' @param maxTime A numerical non-negative value for the maximum simulation time.
 #' @param resultForm A string or NULL.
-#' If a string it is expected to be one of "list", "simple", or "export".
-#' NULL is the same as "simple".
+#' If a string it is expected to be one of "List", "Simple", or "StarSchema".
+#' NULL is the same as "Simple".
 #' @param ... Additional parameters of \code{\link{ECMMonSimulate}}.
 #' @details If the parameters argument \code{params} is a list of numerical vectors
 #' the batch simulation parameters data frame is generated with \code{\link{expand.grid}}.
@@ -949,7 +949,7 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, resultForm = "simple",
 
     ecmObj$Value <- dplyr::bind_rows( lsRes )
 
-  } else if( tolower(resultForm) %in% c( "export", "ertmon" ) ) {
+  } else if( tolower(resultForm) %in% c( "starschema", "star-schema", "star_schema", "ertmon" ) ) {
 
     dfEntityAttributes <-
       purrr::map_df( names(lsParams), function(x) {
