@@ -23,6 +23,7 @@ Otherwise the initial conditions are assigned to the single-site model.
 }
 \seealso{
 Other Simulation functions: 
+\code{\link{ECMMonAddRates}()},
 \code{\link{ECMMonAssignRateValues}()},
 \code{\link{ECMMonBatchSimulate}()},
 \code{\link{ECMMonExtendByAdjacencyMatrix}()},

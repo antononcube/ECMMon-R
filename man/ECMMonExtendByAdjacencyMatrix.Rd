@@ -20,11 +20,10 @@ An ECMMon object.
 }
 \description{
 Extends monad's single site model into multi-site model using the numerical matrix mat.
-If there is a multi-site models simulates with that model for the specified maximum time.
-Otherwise the simulation is done with single-site model.
 }
 \seealso{
 Other Simulation functions: 
+\code{\link{ECMMonAddRates}()},
 \code{\link{ECMMonAssignInitialConditions}()},
 \code{\link{ECMMonAssignRateValues}()},
 \code{\link{ECMMonBatchSimulate}()},

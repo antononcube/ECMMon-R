@@ -33,6 +33,7 @@ the batch simulation parameters data frame is generated with \code{\link{expand.
 }
 \seealso{
 Other Simulation functions: 
+\code{\link{ECMMonAddRates}()},
 \code{\link{ECMMonAssignInitialConditions}()},
 \code{\link{ECMMonAssignRateValues}()},
 \code{\link{ECMMonExtendByAdjacencyMatrix}()},

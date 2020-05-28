@@ -185,6 +185,27 @@ ECMMonEchoFunctionValue <- function( ecmObj, f ) {
 
 
 ##===========================================================
+## Echo
+##===========================================================
+
+#' Echo.
+#' @description Echoes the given argument.
+#' @param ecmObj An ECMMon object.
+#' @param x Object to be echoed.
+#' @return An ECMMon object
+#' @family Echo functions
+#' @export
+ECMMonEcho <- function( ecmObj, x ) {
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  print(x)
+
+  ecmObj
+}
+
+
+##===========================================================
 ## Optional function application over monad's object
 ##===========================================================
 
@@ -769,13 +790,64 @@ ECMMonAssignRateValues <- function( ecmObj, rateValues, unknownRatesWarningQ = T
 
 
 ##===========================================================
-## Simulate
+## Add model rates
+##===========================================================
+
+#' Add model rates.
+#' @description Adds specified rates to monad's default model.
+#' @param ecmObj An ECMMon object.
+#' @param rateDescriptions A character vector with named elements.
+#' @param rateValues A numerical vector with named elements.
+#' @param replaceExistingRatesQ Should existing rates be replaced or not?
+#' @return An ECMMon object.
+#' @details This function is useful when working with rate functions.
+#' If a rate in monad's model object is changed to be a function (instead of number)
+#' then in order to do batch simulations it is convenient to have the parameters
+#' of that function as rates in the model object.
+#' @family Simulation functions
+#' @export
+ECMMonAddRates <- function( ecmObj, rateDescriptions, rateValues, replaceExistingRatesQ = TRUE ) {
+
+  if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
+
+  if( !( is.character(rateDescriptions) && !is.null(rateDescriptions) ) ) {
+    warning( "The argument rateDescriptions is expected to be a character vector with named elements", call. = TRUE )
+    return(ECMMonFailureSymbol)
+  }
+
+  if( !( is.numeric(rateValues) && !is.null(rateValues) ) ) {
+    stop( "The argument rateValues is expected to be a numerical vector with named elements", call. = TRUE )
+    warning(ECMMonFailureSymbol)
+  }
+
+  if( ! ( length(rateDescriptions) == length(rateValues) &&
+          mean( sort(names(rateDescriptions)) == sort(names(rateValues)) ) == 1 ) ) {
+    stop( "The arguments rateDescriptions and rateValues are expected to be of same length and have same element names.", call. = TRUE )
+    warning(ECMMonFailureSymbol)
+  }
+
+  model <- ecmObj %>% ECMMonGetDefaultModel( functionName = "ECMMonAddRates" ) %>% ECMMonTakeValue
+
+  if( ECMMonFailureQ(model) ) { return(ECMMonFailureSymbol) }
+
+  model <- AddModelRates( model = model, rateDescriptions = rateDescriptions, rateValues = rateValues, replaceExistingRatesQ = replaceExistingRatesQ )
+
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignRateValues",  logicalResult = TRUE, warningQ = FALSE) ) {
+    ecmObj$MultiSiteModel <- model
+  } else {
+    ecmObj$SingleSiteModel <- model
+  }
+
+  ecmObj
+}
+
+
+##===========================================================
+## Extend by matrix
 ##===========================================================
 
 #' Extend by adjacency matrix
 #' @description Extends monad's single site model into multi-site model using the numerical matrix mat.
-#' If there is a multi-site models simulates with that model for the specified maximum time.
-#' Otherwise the simulation is done with single-site model.
 #' @param ecmObj An ECMMon object.
 #' @param mat A matrix.
 #' @param migratingStocks A a character vector with stocks (names.)

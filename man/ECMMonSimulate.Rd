@@ -22,6 +22,7 @@ Otherwise the simulation is done with single-site model.
 }
 \seealso{
 Other Simulation functions: 
+\code{\link{ECMMonAddRates}()},
 \code{\link{ECMMonAssignInitialConditions}()},
 \code{\link{ECMMonAssignRateValues}()},
 \code{\link{ECMMonBatchSimulate}()},

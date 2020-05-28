@@ -2,9 +2,11 @@
 
 export(AddModelIdentifier)
 export(AddModelRates)
+export(ECMMonAddRates)
 export(ECMMonAssignInitialConditions)
 export(ECMMonAssignRateValues)
 export(ECMMonBatchSimulate)
+export(ECMMonEcho)
 export(ECMMonEchoFunctionValue)
 export(ECMMonEchoModelTableForm)
 export(ECMMonEchoValue)
