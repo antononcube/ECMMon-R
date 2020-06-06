@@ -1,0 +1,84 @@
+---
+title: "ECMMon workflows by natural commands"
+author: Anton Antonov
+date: "```r Sys.Date()```"
+output: html_notebook
+---
+
+```{r}
+library(ECMMon)
+library(deSolve)
+library(ggplot2)
+library(magrittr)
+library(ExternalParsersHookUp)
+```
+
+# Introduction
+
+This notebooks demonstrates the construction of Epidemiology Compartmental Modeling (ECM) workflows
+using natural language commands.
+
+
+# Additional definitions
+
+```{r, eval=T}
+Perl6ECMMonParsingLib <- function() {
+    file.path("/", "Volumes", "Macintosh HD", "Users", "antonov", "ConversationalAgents", "Packages", "Perl6", "EpidemiologyModelingWorkflows", "lib")
+}
+```
+
+```{r, eval=T}
+to_ECMMon_R_command <- function(command, parse=TRUE) {
+  pres <- Perl6Command( command = paste0( "say to_ECMMon_R(\"", command, "\")"),
+                        moduleDirectory = Perl6ECMMonParsingLib(),
+                        moduleName = "EpidemiologyModelingWorkflows" )
+  messageInds <- grep( "^Possible", pres )
+  if( length(messageInds) > 0 ) {
+    messageLines <- pres[messageInds]
+    print(messageLines)
+    pres <- pres[setdiff(1:length(pres), messageInds)]
+  }
+  pres <- gsub( "\\\"", "\"", pres, fixed = T)
+  if(parse) { parse(text = pres) }
+  else { pres }
+}
+```
+
+# Simple commands
+
+```{r}
+to_ECMMon_R_command( "create with the model SEI2HR", parse = F )
+```
+
+```{r}
+to_ECMMon_R_command( "simulate for 365 days", parse = F )
+```
+
+# Basic pipelines
+
+```{r}
+to_ECMMon_R_command( 
+    "create with the model SEI2HR;
+     simulate for 240 days;
+     plot population results;
+     plot solutions histograms;
+     echo pipeline value" ) 
+```
+
+```{r}
+smrObj2 <-
+  eval( expr = to_ECMMon_R_command( 
+    "create with the model SEI2HR;
+     simulate for 240 days;
+     plot populations results;"
+    ) ) 
+```
+
+```{r}
+smrObj2 <- 
+  eval( to_ECMMon_R_command( 
+  "use object smrObj2; 
+  plot solutions histograms"
+) )
+```
+
