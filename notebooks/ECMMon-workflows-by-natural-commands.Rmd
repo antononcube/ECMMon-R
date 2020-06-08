@@ -66,7 +66,7 @@ to_ECMMon_R_command(
 ```
 
 ```{r}
-smrObj2 <-
+ecmObj2 <-
   eval( expr = to_ECMMon_R_command( 
     "create with the model SEI2HR;
      simulate for 240 days;
@@ -75,10 +75,33 @@ smrObj2 <-
 ```
 
 ```{r}
-smrObj2 <- 
+ecmObj2 <- 
   eval( to_ECMMon_R_command( 
-  "use object smrObj2; 
+  "use object ecmObj2; 
   plot solutions histograms"
 ) )
+```
+
+# Batch simulation
+
+```{r}
+to_ECMMon_R_command( 
+    "create with the model SEI2HR;
+     batch simulate over lpcr = 0, aincp = c(10,20,30), and aip = c(20,30) for 240 days;
+     plot population results" ) 
+```
+
+```{r}
+ecmObj <- 
+  eval( to_ECMMon_R_command( 
+    "create with the model SEI2HR;
+     batch simulate over lpcr = 0, aincp = c(10,20,30), and aip = c(20,30) for 240 days;
+     show pipeline value" ) )
+```
+
+```{r}
+ggplot(ecmObj %>% ECMMonTakeValue) + 
+  geom_line( aes( x = Time, y = Value, group = Stock, color = Stock ) ) +
+  facet_wrap( ~lpcr + aincp + aip, ncol = 3 )
 ```
 
