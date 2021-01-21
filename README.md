@@ -1,5 +1,10 @@
 # Epidemiology Compartmental Modeling Monad R package
 
+<!-- badges: start -->
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![Codecov test coverage](https://codecov.io/gh/antononcube/ECMMon-R/branch/master/graph/badge.svg)](https://codecov.io/gh/antononcube/ECMMon-R?branch=master)
+<!-- badges: end -->
+  
 ## Introduction
 
 This package has implementations of [epidemiology compartmental models](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology), [Wk1, HH1], 
