@@ -15,68 +15,52 @@ library(ExternalParsersHookUp)
 
 # Introduction
 
-This notebooks demonstrates the construction of Epidemiology Compartmental Modeling (ECM) workflows
+This notebooks demonstrates the construction of Epidemiologic Compartmental Modeling (ECM) workflows
 using natural language commands.
 
-
-# Additional definitions
-
-```{r, eval=T}
-Perl6ECMMonParsingLib <- function() {
-    file.path("/", "Volumes", "Macintosh HD", "Users", "antonov", "ConversationalAgents", "Packages", "Perl6", "EpidemiologyModelingWorkflows", "lib")
-}
-```
-
-```{r, eval=T}
-to_ECMMon_R_command <- function(command, parse=TRUE) {
-  pres <- Perl6Command( command = paste0( "say to_ECMMon_R(\"", command, "\")"),
-                        moduleDirectory = Perl6ECMMonParsingLib(),
-                        moduleName = "EpidemiologyModelingWorkflows" )
-  messageInds <- grep( "^Possible", pres )
-  if( length(messageInds) > 0 ) {
-    messageLines <- pres[messageInds]
-    print(messageLines)
-    pres <- pres[setdiff(1:length(pres), messageInds)]
-  }
-  pres <- gsub( "\\\"", "\"", pres, fixed = T)
-  if(parse) { parse(text = pres) }
-  else { pres }
-}
-```
 
 # Simple commands
 
 ```{r}
-to_ECMMon_R_command( "create with the model SEI2HR", parse = F )
+ToEpidemiologyModelingWorkflowCode( "create with the model SEI2HREcon", parse = F )
 ```
 
 ```{r}
-to_ECMMon_R_command( "simulate for 365 days", parse = F )
+ToEpidemiologyModelingWorkflowCode( "simulate for 365 days", parse = F )
 ```
 
 # Basic pipelines
 
 ```{r}
-to_ECMMon_R_command( 
+ToEpidemiologyModelingWorkflowCode( 
     "create with the model SEI2HR;
      simulate for 240 days;
      plot population results;
-     plot solutions histograms;
-     echo pipeline value" ) 
+     plot solutions histograms over min time 100, max time 240;
+     echo pipeline value" )
+```
+```{r}
+obj1 <- eval(
+expression(ECMMonUnit( model = SEI2HRModel()) %>%
+ECMMonSimulate(maxTime = 240) %>%
+ECMMonPlotSolutions( stocksSpec = ".*Population") %>%
+ECMMonPlotSolutionHistograms(minTime = 100, maxTime = 240) %>%
+ECMMonEchoValue())
+)
 ```
 
 ```{r}
 ecmObj2 <-
-  eval( expr = to_ECMMon_R_command( 
+  eval( expr = ToEpidemiologyModelingWorkflowCode( 
     "create with the model SEI2HR;
      simulate for 240 days;
-     plot populations results;"
+     plot populations results over max time 250;"
     ) ) 
 ```
 
 ```{r}
 ecmObj2 <- 
-  eval( to_ECMMon_R_command( 
+  eval( ToEpidemiologyModelingWorkflowCode( 
   "use object ecmObj2; 
   plot solutions histograms"
 ) )
@@ -85,17 +69,31 @@ ecmObj2 <-
 # Batch simulation
 
 ```{r}
-to_ECMMon_R_command( 
+ToEpidemiologyModelingWorkflowCode( 
     "create with the model SEI2HR;
-     batch simulate over lpcr = 0, aincp = c(10,20,30), and aip = c(20,30) for 240 days;
+     assign 0.7 to sspf;
+     batch simulate over lpcr = 0, aincp = seq(10,40), and aip = c(20,30) for 240 days;
      plot population results" ) 
 ```
 
 ```{r}
-ecmObj <- 
-  eval( to_ECMMon_R_command( 
+ToEpidemiologyModelingWorkflowCode( 
     "create with the model SEI2HR;
-     batch simulate over lpcr = 0, aincp = c(10,20,30), and aip = c(20,30) for 240 days;
+     assign 0.7 to severely symptomatic population fraction;
+     batch simulate over lpcr = 0, average incubation period from 10 to 40 step 5, and average infectious period = c(20,30) for 240 days;
+     plot population results" ) 
+```
+```{r}
+expand.grid(list(aincp = c(10,20,30), aip = c(20,30) ))
+```
+
+
+```{r}
+ecmObj <- 
+  eval( ToEpidemiologyModelingWorkflowCode( 
+    "create with the model SEI2HR;
+     assign 0.6 to sspf;
+     batch simulate over lpcr = 0, aincp = c(10,20,30), aip = c(20,30) for 240 days;
      show pipeline value" ) )
 ```
 
@@ -103,5 +101,29 @@ ecmObj <-
 ggplot(ecmObj %>% ECMMonTakeValue) + 
   geom_line( aes( x = Time, y = Value, group = Stock, color = Stock ) ) +
   facet_wrap( ~lpcr + aincp + aip, ncol = 3 )
+```
+# Multi-site simulations
+
+```{r}
+ToEpidemiologyModelingWorkflowCode("
+create object with model SEI2HR;
+extend by the adjacency matrix mat1 for the migrating stocks SPt, EPt, and RPt;
+simulate for 365 days;
+plot population results;")
+```
+
+```{r}
+mat1 <- round(matrix( runif(n = 9, min = 10, max = 100 ), nrow = 3 ))
+for( i in 1:nrow(mat1) ) { mat1[i,i] <- 0 }
+mat1
+```
+
+```{r}
+ecmObj4 <- 
+  eval(ToEpidemiologyModelingWorkflowCode("
+create object with model SEI2HR;
+extend by the adjacency matrix mat1 for the migrating stocks SPt, EPt, and RPt;
+simulate for 365 days;
+plot population results"))
 ```
 
