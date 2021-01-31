@@ -1,5 +1,5 @@
 ##===========================================================
-## Epidemiology Compartmental Modeling Monad in R
+## Epidemiologic Compartmental Modeling Monad in R
 ## Copyright (C) 2020  Anton Antonov
 ##
 ## This program is free software: you can redistribute it and/or modify
@@ -956,7 +956,7 @@ ListOfParameterNumericVectorsQ <- function(model, obj) {
 #' @return An ECMMon object.
 #' @family Simulation functions
 #' @export
-ECMMonBatchSimulate <- function( ecmObj, params, maxTime, resultForm = "simple", ... ) {
+ECMMonBatchSimulate <- function( ecmObj, params, maxTime, resultForm = "Simple", ... ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
@@ -1050,8 +1050,8 @@ ECMMonBatchSimulate <- function( ecmObj, params, maxTime, resultForm = "simple",
 
     warning(
       paste(
-        "The value of the argument resultForm is expected to be NULL or one of: 'list', 'simple', or 'export'.",
-        "Continuing with 'simple'."
+        "The value of the argument resultForm is expected to be NULL or one of: 'List', 'Simple', or 'StarSchema'.",
+        "Continuing with 'Simple'."
       ),
       call. = TRUE )
 

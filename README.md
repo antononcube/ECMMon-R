@@ -1,4 +1,4 @@
-# Epidemiology Compartmental Modeling Monad R package
+# Epidemiologic Compartmental Modeling Monad R package
 
 <!-- badges: start -->
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
@@ -7,7 +7,7 @@
   
 ## Introduction
 
-This package has implementations of [epidemiology compartmental models](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology), [Wk1, HH1], 
+This package has implementations of [epidemiologic compartmental models](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology), [Wk1, HH1], 
 modified to fit better simulations of propagation of [COVID-19](https://en.wikipedia.org/wiki/Coronavirus_disease_2019), [Wk2]. 
 
 The models implemented in this package deal with one, two, or all three of the rectangles in this diagram:
