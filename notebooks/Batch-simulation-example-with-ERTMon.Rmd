@@ -5,7 +5,7 @@ date: 2020-05-25
 output: html_notebook
 ---
 
-```{r}
+```{r setup}
 library(ECMMon)
 library(ERTMon)
 library(magrittr)
@@ -14,7 +14,17 @@ library(ggplot2)
 
 # Introduction
 
-Illustrate the batch simulation abilities of ECMMon.
+In this notebook we illustrate the batch simulation abilities of ECMMon.
+
+Here are the steps:
+
+1. Formulate a basic workflow pipeline
+
+2. Do batch simulations 
+
+  - The batch simulations results are exported to data structures used by Event Records Transformations Monad (ERTMon).
+
+3. Using the ERTMon object visualize batch simulations results.
 
 # Basic pipeline
 
@@ -28,12 +38,22 @@ ecmObj <-
 ```
 
 
-# Using ERTMon
+# Batch similations
+
+Here is a data frame for the batch simulations parameters:
+
+```{r}
+dfParameters <- do.call( expand.grid, list( "TP0" = seq(2, 3, 1) * 10^5, "ISSPt" = 10 ^ seq(0, 2, 1) ) )
+dfParameters <- cbind( dfParameters, "SPt" = dfParameters$TP0 - dfParameters$ISSPt,  "lpcr" = 0  )
+dfParameters
+```
+
+Batch simulate and export the data in "star schema" data structures that can be used by ERTMon:
 
 ```{r}
 lsRes <- 
   ecmObj %>% 
-  ECMMonBatchSimulate( params = dfParameters, maxTime = 365, resultForm = "export" )  %>% 
+  ECMMonBatchSimulate( params = dfParameters, maxTime = 365, resultForm = "StarSchema" )  %>% 
   ECMMonTakeValue
 ```
 
@@ -45,6 +65,7 @@ names(lsRes)
 lsRes[[1]]
 ```
 
+# Visualize batch simulations results
 
 ```{r}
 lsVars <- unique(lsRes$EventRecords$Variable) 

@@ -106,7 +106,7 @@ dfParameters <- cbind( dfParameters, "SPt" = dfParameters$TP0 - dfParameters$ISS
 dfParameters
 ```
 
-Note that we added the column "SPt" in order to have consisten initial conditions.
+Note that we added the column "SPt" in order to have consistent initial conditions.
 
 Batch simulation:
 
@@ -137,7 +137,7 @@ ggplot( dfRes %>% dplyr::filter( Stock == "ISSPt" ) ) +
   geom_line( aes( x = Time, y = Value, color = interaction( TP0, ISSPt ) ) )
 ```
 
-# Using parametric functions
+# Using parametric functions (first)
 
 ***This approach does not work.***
 
@@ -158,5 +158,19 @@ ecmObj2 <-
 ```
 
 
-
-
+```{r, eval=FALSE}
+ecmObj2 <- 
+  ECMMonUnit( SEI2HRModel( initialConditionsQ = TRUE, rateRulesQ = TRUE ) ) %>% 
+  ECMMonEcho("Simulation starts...") %>% 
+  ECMMonAssignRateValues( 
+    c( 
+      "contactRateINSP" =  function(t) { 0.56 * ifelse( qsd <= t && t <= qsd + ql, 0.25, 1 ) },
+      "contactRateISSP" =  function(t) { 0.56 * ifelse( qsd <= t && t <= qsd + ql, 0.25, 1 ) }
+    ) 
+  ) %>% 
+  ECMMonAddRates( rateDescriptions = c( "qsd" = "Quaranine start day", "ql" = "Quarantine length"), rateValues = c( "qsd" = 100, "ql" = 14 ) ) %>% 
+  ECMMonSimulate( 365, method = "rk4" ) %>% 
+  ECMMonTakeDeSolveSolution
+  ECMMonBatchSimulate( params = list( "contactRateINSP" = lsFuncs ) , maxTime = 365 )%>% 
+  ECMMonTakeValue
+```

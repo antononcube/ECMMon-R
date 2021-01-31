@@ -54,12 +54,12 @@ for interactive experimentation with the package models. The flexdashboard can b
 
 # Install and load `ECMMon` 
 
-This notebook use the package `ECMMon-R`, [AAr2], which implements a software monad for rapid specification of Epidemiology Compartmental Modeling (ECM) workflows.
+This notebook use the package `ECMMon-R`, [AAr2], which implements a software monad for rapid specification of Epidemiologic Compartmental Modeling (ECM) workflows.
 
 Monad's name is "ECMMon", which stands for "**E**pidemiology **C**ompartmental **M**odeling **Mon**ad".
 
-```{r, message=FALSE}
-devtools::install_github( "antononcube/ECMMon-R")
+```{r setup, message=FALSE}
+#devtools::install_github( "antononcube/ECMMon-R")
 library(ECMMon)
 library(magrittr)
 library(dplyr)

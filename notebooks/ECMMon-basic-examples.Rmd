@@ -2,12 +2,14 @@
 title: "ECMMon basic examples"
 author: Anton Antonov
 date: 2020-04-09
-output: html_notebook
+output: html_notebook:
+fig_width: 8
+fig_height: 6
 ---
 
 ```{r}
-#library(ECMMon)
-devtools::load_all()
+library(ECMMon)
+library(magrittr)
 ```
 
 # Introduction
@@ -16,14 +18,95 @@ devtools::load_all()
 
 ```{r}
 model <- SEI2HRModel(initialConditionsQ = T, rateRulesQ = T)
+
+EpidemiologyFullModelQ( model )
+EpidemiologyFullModelProperlyDefinedQ( model )
 ```
 
 ```{r}
 ecmObj <- 
-  ECMMonUnit() %>% 
-  ECMMonSetSingleSiteModel(model) %>% 
-  ECMMonEchoModelTableForm( c( "Stocks", "InitialConditions") ) %>% 
-  ECMMonSimulate( maxTime = 365 ) %>% 
-  ECMMonPlotSolutions( stocksSpec = ".*P." )
+  ECMMonUnit(model) %>% 
+  ECMMonEchoModelTableForm( dataFrameResultQ = TRUE, echoQ = TRUE )
 ```
+
+```{r}
+ECMMonUnit(SEI2HREconModel(initialConditionsQ = T, rateRulesQ = T)) %>% 
+  ECMMonSimulate( maxTime = 365, method = "rk4" ) %>% 
+  ECMMonTakeSolution
+```
+
+```{r}
+ecmObj <- 
+  ECMMonUnit(model) %>% 
+  # ECMMonEchoModelTableForm( c("Stocks", "InitialConditions") ) %>% 
+  ECMMonSimulate( maxTime = 365 ) %>% 
+  ECMMonPlotSolutions( stocksSpec = ".*Popu" )
+```
+
+```{r}
+ecmObj <- 
+  ECMMonUnit(model) %>% 
+  ECMMonAssignInitialConditions( c( SPt = 10^6-200, ISSPt = 200 ) ) %>% 
+  ECMMonSimulate( maxTime = 365 ) %>% 
+  ECMMonPlotSolutions( stocksSpec = ".*Population", separatePlotsQ = TRUE, stockDescriptionsQ = TRUE, ncol = 2, scales = "free" )
+```
+
+```{r}
+ecmObj <- ecmObj %>% ECMMonPlotSolutionHistograms( stocksSpec = ".*P.", maxTime = 500, bins = 20, ncol = 3, stockDescriptionsQ = TRUE, scales = "free"  )
+```
+
+# Quarantine scenarios
+
+```{r, rows.print = 20}
+ecmObj<- 
+  ECMMonUnit(SEI2HRModel() )%>%
+  ECMMonEchoModelTableForm( "Rates")
+```
+
+```{r}
+ecmObj2 <- 
+  ECMMonUnit(model) %>% 
+  ECMMonAssignRateValues( 
+    list( 
+      "contactRateINSP" = function(t) { 0.56 * ifelse( 60 <= t && t <= 60 + 56, 0.25, 1 ) },
+      "contactRateISSP" = function(t) { 0.56 * ifelse( 60 <= t && t <= 60 + 56, 0.25, 1 ) }
+    ) 
+  ) %>% 
+  ECMMonEchoModelTableForm( "RateRules" ) %>% 
+  ECMMonSimulate( maxTime = 365 ) %>% 
+  ECMMonPlotSolutions( stocksSpec = "^.*Population" )
+```
+
+```{r}
+ecmObj2 <- 
+  ECMMonUnit(model) %>% 
+  ECMMonAssignRateValues( 
+    list( 
+      "contactRateINSP" = function(t) { 0.56 * ifelse( qsd <= t && t <= qsd + ql, qcrf, 1 ) },
+      "contactRateISSP" = function(t) { 0.56 * ifelse( qsd <= t && t <= qsd + ql, qcrf, 1 ) }
+    ) 
+  ) 
+```
+
+```{r}
+{ 
+  qsd = 55; ql = 100; qcrf = 0.1
+  ecmObj2 <- 
+    ecmObj2 %>% 
+    ECMMonSimulate( maxTime = 365 ) %>% 
+    ECMMonPlotSolutions( stocksSpec =  ".*Population"  )
+}
+```
+
+# Export
+
+```{r}
+ecmObj3 <- 
+  ECMMonUnit( SEI2HREconModel() ) %>% 
+  ECMMonAssignInitialConditions( c( "SPt" = 250000 ) ) %>% 
+  ECMMonSimulate( 240 ) %>% 
+  ECMMonExport( directoryName = "../exported_models", modelID = "SEI2HR-Quarantine", fileNamePrefix = "quarantine1-" )
+```
+
+
 
