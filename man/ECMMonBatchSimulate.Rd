@@ -4,7 +4,7 @@
 \alias{ECMMonBatchSimulate}
 \title{Batch simulate.}
 \usage{
-ECMMonBatchSimulate(ecmObj, params, maxTime, resultForm = "simple", ...)
+ECMMonBatchSimulate(ecmObj, params, maxTime, resultForm = "Simple", ...)
 }
 \arguments{
 \item{ecmObj}{An ECMMon object.}
