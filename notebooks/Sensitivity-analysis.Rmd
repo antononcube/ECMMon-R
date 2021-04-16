@@ -36,7 +36,7 @@ model[["RateRules"]][["contactRateISSP"]] <- with( list( cr = model[["RateRules"
 ```{r}
 system.time(
   dfSARes <- 
-    purrr::map_df( seq(50,120,10), function( qsd ) {
+    purrr::map_df( seq(40,120,10), function( qsd ) {
       
       dfRes <- 
         ECMMonUnit( model ) %>% 
@@ -112,9 +112,6 @@ m <- sum( dfPairs$Var1 == min(dfPairs$Var1) )
 n <- sum( dfPairs$Var2 == min(dfPairs$Var2) )
 ```
 
-```{r}
-
-```
 
 ```{r}
 threejs::scatterplot3js( x = dfSARes$QuarantineStart, y = dfSARes$QuarantineLength, z = dfSARes$DIPt, size = 0.25 ) %>% 
