@@ -3,6 +3,7 @@
 <!-- badges: start -->
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Codecov test coverage](https://codecov.io/gh/antononcube/ECMMon-R/branch/master/graph/badge.svg)](https://codecov.io/gh/antononcube/ECMMon-R?branch=master)
+[![R-CMD-check](https://github.com/antononcube/ECMMon-R/workflows/R-CMD-check/badge.svg)](https://github.com/antononcube/ECMMon-R/actions)
 <!-- badges: end -->
   
 ## Introduction
