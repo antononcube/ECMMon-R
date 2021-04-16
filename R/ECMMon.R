@@ -370,7 +370,7 @@ ECMMonTakeSingleSiteModel <- function( ecmObj, functionName = "ECMMonTakeSingleS
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = functionName,  logicalResult = TRUE) ) {
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = functionName,  logicalResultQ = TRUE) ) {
     return(ECMMonFailureSymbol)
   }
 
@@ -392,7 +392,7 @@ ECMMonTakeMultiSiteModel <- function( ecmObj, functionName = "ECMMonTakeMultiSit
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = functionName,  logicalResult = TRUE) ) {
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = functionName,  logicalResultQ = TRUE) ) {
     return(ECMMonFailureSymbol)
   }
 
@@ -414,7 +414,7 @@ ECMMonTakeGrid <- function( ecmObj, functionName = "ECMMonTakeGrid" ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Grid", memberPrettyName = "Grid", functionName = functionName,  logicalResult = TRUE) ) {
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Grid", memberPrettyName = "Grid", functionName = functionName,  logicalResultQ = TRUE) ) {
     return(ECMMonFailureSymbol)
   }
 
@@ -436,7 +436,7 @@ ECMMonTakeDeSolveSolution <- function( ecmObj, functionName = "ECMMonTakeDeSolve
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "deSolveSolution", memberPrettyName = "deSolveSolution", functionName = functionName,  logicalResult = TRUE) ) {
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "deSolveSolution", memberPrettyName = "deSolveSolution", functionName = functionName,  logicalResultQ = TRUE) ) {
     return(ECMMonFailureSymbol)
   }
 
@@ -458,7 +458,7 @@ ECMMonTakeSolution <- function( ecmObj, functionName = "ECMMonTakeSolution" ) {
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Solution", memberPrettyName = "Solution", functionName = functionName,  logicalResult = TRUE) ) {
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Solution", memberPrettyName = "Solution", functionName = functionName,  logicalResultQ = TRUE) ) {
     return(ECMMonFailureSymbol)
   }
 
@@ -485,11 +485,11 @@ ECMMonGetDefaultModel <- function( ecmObj, functionName = "ECMMonGetDefaultModel
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = functionName,  logicalResult = TRUE, warningQ = FALSE) ) {
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = functionName,  logicalResultQ = TRUE, warningQ = FALSE) ) {
 
     ecmObj$Value <- ecmObj$MultiSiteModel
 
-  } else if( ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = functionName,  logicalResult = TRUE, warningQ = FALSE) ) {
+  } else if( ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = functionName,  logicalResultQ = TRUE, warningQ = FALSE) ) {
 
     ecmObj$Value <- ecmObj$SingleSiteModel
 
@@ -523,7 +523,7 @@ ECMMonGetSolutionLongForm <- function( ecmObj, stockDescriptionsQ = TRUE, siteId
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Solution", memberPrettyName = "Solution", functionName = "GetSolutionLongForm",  logicalResult = TRUE) ) {
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Solution", memberPrettyName = "Solution", functionName = "GetSolutionLongForm",  logicalResultQ = TRUE) ) {
     return(ECMMonFailureSymbol)
   }
 
@@ -544,7 +544,7 @@ ECMMonGetSolutionLongForm <- function( ecmObj, stockDescriptionsQ = TRUE, siteId
 
   if( siteIdentifiersQ ) {
 
-    if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonGetSolutionLongForm",  logicalResult = TRUE, warningQ = FALSE ) ) {
+    if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonGetSolutionLongForm",  logicalResultQ = TRUE, warningQ = FALSE ) ) {
 
       model <- ecmObj %>% ECMMonGetDefaultModel %>% ECMMonTakeValue
 
@@ -713,7 +713,7 @@ ECMMonAssignInitialConditions <- function( ecmObj, initConds, unknownStocksWarni
   model$InitialConditions[ names(initConds) ] <- initConds
 
 
-  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignInitialConditions",  logicalResult = TRUE, warningQ = FALSE) ) {
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignInitialConditions",  logicalResultQ = TRUE, warningQ = FALSE) ) {
     ecmObj$MultiSiteModel <- model
   } else {
     ecmObj$SingleSiteModel <- model
@@ -779,7 +779,7 @@ ECMMonAssignRateValues <- function( ecmObj, rateValues, unknownRatesWarningQ = T
   #   model$RateRules[ names(rateValues) ] <- rateValues
   # }
 
-  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignRateValues",  logicalResult = TRUE, warningQ = FALSE) ) {
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignRateValues",  logicalResultQ = TRUE, warningQ = FALSE) ) {
     ecmObj$MultiSiteModel <- model
   } else {
     ecmObj$SingleSiteModel <- model
@@ -832,7 +832,7 @@ ECMMonAddRates <- function( ecmObj, rateDescriptions, rateValues, replaceExistin
 
   model <- AddModelRates( model = model, rateDescriptions = rateDescriptions, rateValues = rateValues, replaceExistingRatesQ = replaceExistingRatesQ )
 
-  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignRateValues",  logicalResult = TRUE, warningQ = FALSE) ) {
+  if( ECMMonMemberPresenceCheck( ecmObj, memberName = "MultiSiteModel", memberPrettyName = "MultiSiteModel", functionName = "ECMMonAssignRateValues",  logicalResultQ = TRUE, warningQ = FALSE) ) {
     ecmObj$MultiSiteModel <- model
   } else {
     ecmObj$SingleSiteModel <- model
@@ -859,7 +859,7 @@ ECMMonExtendByAdjacencyMatrix <- function( ecmObj, mat, migratingStocks = NULL, 
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonSimulate",  logicalResult = TRUE) ) {
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "SingleSiteModel", memberPrettyName = "SingleSiteModel", functionName = "ECMMonSimulate",  logicalResultQ = TRUE) ) {
     return(ECMMonFailureSymbol)
   }
 
@@ -1085,7 +1085,7 @@ ECMMonPlotSolutions <- function( ecmObj, stocksSpec = NULL, maxTime = NULL, echo
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Solution", memberPrettyName = "Solution", functionName = "ECMMonPlotSolutions",  logicalResult = TRUE) ) {
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Solution", memberPrettyName = "Solution", functionName = "ECMMonPlotSolutions",  logicalResultQ = TRUE) ) {
     return(ECMMonFailureSymbol)
   }
 
@@ -1156,7 +1156,7 @@ ECMMonPlotSolutionHistograms <- function( ecmObj, stocksSpec = NULL, maxTime = N
 
   if( ECMMonFailureQ(ecmObj) ) { return(ECMMonFailureSymbol) }
 
-  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Solution", memberPrettyName = "Solution", functionName = "ECMMonPlotSolutions",  logicalResult = TRUE) ) {
+  if( !ECMMonMemberPresenceCheck( ecmObj, memberName = "Solution", memberPrettyName = "Solution", functionName = "ECMMonPlotSolutions",  logicalResultQ = TRUE) ) {
     return(ECMMonFailureSymbol)
   }
 
