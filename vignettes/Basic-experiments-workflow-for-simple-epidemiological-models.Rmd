@@ -236,7 +236,7 @@ In this section we just attempt to calibrate SEI2R over real data taken from [WR
 
 [AA1] Anton Antonov, ["Coronavirus propagation modeling considerations"](https://github.com/antononcube/SystemModeling/blob/master/Projects/Coronavirus-propagation-dynamics/Documents/Coronavirus-propagation-modeling-considerations.md), (2020), [SystemModeling at GitHub](https://github.com/antononcube/SystemModeling).
 
-[AA2] Anton Antonov, [Answer of "Model calibration with phase space data"](https://mathematica.stackexchange.com/a/190295/34008), (2019), [Mathematica StackExchage](https://mathematica.stackexchange.com).
+[AA2] Anton Antonov, [Answer of "Model calibration with phase space data"](https://mathematica.stackexchange.com/a/190295/34008), (2019), [Mathematica StackExchange](https://mathematica.stackexchange.com).
 
 ## Repositories & packages
 
@@ -246,7 +246,7 @@ In this section we just attempt to calibrate SEI2R over real data taken from [WR
 
 [AAr1] Anton Antonov, [Coronavirus propagation dynamics project](https://github.com/antononcube/SystemModeling/tree/master/Projects/Coronavirus-propagation-dynamics), (2020), [SystemModeling at GitHub](https://github.com/antononcube/SystemModeling).
 
-[AAr2] Anton Antonov, [Epidemiology Compartmental Modeling Monad R package](https://github.com/antononcube/ECMMon-R), (2020), [ECMMon-R at GitHub](https://github.com/antononcube/ECMMon-R).
+[AAr2] Anton Antonov, [Epidemiologic Compartmental Modeling Monad R package](https://github.com/antononcube/ECMMon-R), (2020), [ECMMon-R at GitHub](https://github.com/antononcube/ECMMon-R).
 
 [AAp1] Anton Antonov, ["Epidemiology models Mathematica package"](https://github.com/antononcube/SystemModeling/blob/master/Projects/Coronavirus-propagation-dynamics/WL/EpidemiologyModels.m), (2020), [SystemModeling at GitHub](https://github.com/antononcube/SystemModeling).
 
